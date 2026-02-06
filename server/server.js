@@ -14,6 +14,17 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+const db = require('./config/db');
+app.get('/api/health', async (req, res) => {
+    try {
+        const result = await db.query('SELECT NOW()');
+        res.json({ status: 'ok', time: result.rows[0] });
+    } catch (err) {
+        console.error('Health check failed:', err);
+        res.status(500).json({ status: 'error', message: err.message });
+    }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 
