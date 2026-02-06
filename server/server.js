@@ -50,15 +50,13 @@ app.get('/debug-env', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 
-// Serve static assets from the React app in production
-if (process.env.NODE_ENV === 'production') {
-    const buildPath = path.join(__dirname, '../client/dist');
-    app.use(express.static(buildPath));
+// Serve static assets from the React app
+const buildPath = path.join(__dirname, '../client/dist');
+app.use(express.static(buildPath));
 
-    app.get('*', (req, res) => {
-        res.sendFile(path.resolve(buildPath, 'index.html'));
-    });
-}
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(buildPath, 'index.html'));
+});
 
 // Basic error handler
 app.use((err, req, res, next) => {
