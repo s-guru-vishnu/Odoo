@@ -15,18 +15,20 @@ app.use(express.json());
 
 // Health check - getDb() is called ONLY at runtime when a request hits this route
 app.get('/api/health', async (req, res) => {
+    let dbStatus = 'unknown';
     try {
         const db = getDb();
-        const result = await db.query('SELECT NOW()');
-        res.json({
-            status: 'ok',
-            serverTime: result.rows[0].now,
-            env: process.env.NODE_ENV || 'development'
-        });
+        await db.query('SELECT 1');
+        dbStatus = 'ok';
     } catch (err) {
-        console.error('Database runtime check failed:', err.message);
-        res.status(500).json({ status: 'error', message: 'Runtime DB connection failed' });
+        dbStatus = 'unavailable';
+        console.error('Database not ready:', err.message);
     }
+    res.status(200).json({
+        status: 'ok',
+        db: dbStatus,
+        env: process.env.NODE_ENV || 'development'
+    });
 });
 
 // Routes
