@@ -21,6 +21,7 @@ app.get('/api/health-simple', (req, res) => {
 // Detailed health check - Checks connection and tables
 app.get('/api/health', async (req, res) => {
     let dbStatus = 'unknown';
+    let dbError = null;
     let tables = { users: false, messages: false };
     try {
         const db = getDb();
@@ -34,13 +35,15 @@ app.get('/api/health', async (req, res) => {
         tables.messages = !!msgTable.rows[0].exists;
     } catch (err) {
         dbStatus = 'error';
+        dbError = err.message;
         console.error('Database health check failed:', err.message);
     }
     res.status(200).json({
         status: 'ok',
         database: dbStatus,
+        error: dbError,
         tables: tables,
-        env: process.env.NODE_ENV || 'development'
+        env: process.env.NODE_ENV
     });
 });
 
