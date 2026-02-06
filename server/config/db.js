@@ -8,18 +8,21 @@ let pool;
  */
 function getDb() {
   if (!pool) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL environment variable is not set');
+    const connectionString = process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL;
+
+    if (!connectionString) {
+      throw new Error('DATABASE_URL environment variable is not set. Please link your Postgres service in Railway.');
     }
 
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      connectionString,
+      ssl: process.env.NODE_ENV === 'production' || connectionString.includes('railway.app')
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     pool.on('error', (err) => {
       console.error('Unexpected database error:', err);
-      if (process.env.NODE_ENV === 'production') process.exit(-1);
     });
   }
   return pool;

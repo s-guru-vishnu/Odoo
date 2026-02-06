@@ -13,12 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Basic health check (no DB dependency)
-app.get('/api/health-simple', (req, res) => {
-    res.status(200).json({ status: 'ok' });
-});
-
-// Detailed health check - getDb() is called ONLY at runtime
+// Health check - getDb() is called ONLY at runtime when a request hits this route
 app.get('/api/health', async (req, res) => {
     let dbStatus = 'unknown';
     try {
@@ -36,27 +31,19 @@ app.get('/api/health', async (req, res) => {
     });
 });
 
-// Debug environment (remove in production)
-app.get('/debug-env', (req, res) => {
-    res.json({
-        DATABASE_URL: process.env.DATABASE_URL ? 'exists' : 'missing',
-        NODE_ENV: process.env.NODE_ENV,
-        PORT: process.env.PORT,
-        HAS_SECRET: process.env.JWT_SECRET ? 'exists' : 'missing'
-    });
-});
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 
-// Serve static assets from the React app
-const buildPath = path.join(__dirname, '../client/dist');
-app.use(express.static(buildPath));
+// Serve static assets from the React app in production
+if (process.env.NODE_ENV === 'production') {
+    const buildPath = path.join(__dirname, '../client/dist');
+    app.use(express.static(buildPath));
 
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(buildPath, 'index.html'));
-});
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(buildPath, 'index.html'));
+    });
+}
 
 // Basic error handler
 app.use((err, req, res, next) => {
