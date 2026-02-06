@@ -5,9 +5,15 @@ async function initDb() {
     try {
         console.log('--- Initializing Database ---');
 
-        // Create or Update Users Table
+        // Drop existing tables to ensure a clean slate with the new TEXT schema
+        console.log('🗑️ Cleaning old schema...');
+        await db.query('DROP TABLE IF EXISTS messages CASCADE');
+        await db.query('DROP TABLE IF EXISTS users CASCADE');
+
+        // Recreate Users Table with all TEXT types as requested
+        console.log('🏗️ Creating Users table (TEXT schema)...');
         await db.query(`
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE users (
                 id SERIAL PRIMARY KEY,
                 name TEXT,
                 email TEXT UNIQUE,
@@ -17,21 +23,10 @@ async function initDb() {
             );
         `);
 
-        // Explicitly convert all columns to TEXT and fix defaults
+        // Recreate Messages Table with all TEXT types as requested
+        console.log('🏗️ Creating Messages table (TEXT schema)...');
         await db.query(`
-            ALTER TABLE users ALTER COLUMN name TYPE TEXT;
-            ALTER TABLE users ALTER COLUMN email TYPE TEXT;
-            ALTER TABLE users ALTER COLUMN password_hash TYPE TEXT;
-            ALTER TABLE users ALTER COLUMN role TYPE TEXT;
-            ALTER TABLE users ALTER COLUMN created_at TYPE TEXT;
-            ALTER TABLE users ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP::TEXT;
-            ALTER TABLE users ALTER COLUMN created_at DROP NOT NULL;
-        `);
-        console.log('✅ Users table schema updated to TEXT');
-
-        // Create or Update Messages Table
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS messages (
+            CREATE TABLE messages (
                 id SERIAL PRIMARY KEY,
                 sender_id INTEGER REFERENCES users(id),
                 content TEXT,
@@ -40,14 +35,7 @@ async function initDb() {
             );
         `);
 
-        await db.query(`
-            ALTER TABLE messages ALTER COLUMN content TYPE TEXT;
-            ALTER TABLE messages ALTER COLUMN status TYPE TEXT;
-            ALTER TABLE messages ALTER COLUMN created_at TYPE TEXT;
-            ALTER TABLE messages ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP::TEXT;
-            ALTER TABLE messages ALTER COLUMN created_at DROP NOT NULL;
-        `);
-        console.log('✅ Messages table schema updated to TEXT');
+        console.log('✅ Database Schema Reset Complete (All TEXT)');
 
         console.log('--- Database Initialization Complete ---');
         process.exit(0);
