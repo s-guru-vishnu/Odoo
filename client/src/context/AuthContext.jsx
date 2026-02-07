@@ -7,18 +7,21 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log('AuthProvider: Initializing...');
         try {
             const savedUser = localStorage.getItem('user');
             const token = localStorage.getItem('token');
+            console.log('AuthProvider: Found saved data:', { hasUser: !!savedUser, hasToken: !!token });
 
             if (savedUser && token) {
                 setUser(JSON.parse(savedUser));
             }
         } catch (error) {
-            console.error('Failed to parse auth data:', error);
+            console.error('AuthProvider: Failed to parse auth data:', error);
             localStorage.removeItem('user');
             localStorage.removeItem('token');
         } finally {
+            console.log('AuthProvider: Setting loading to false');
             setLoading(false);
         }
     }, []);
@@ -37,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{ user, login, logout, loading }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };

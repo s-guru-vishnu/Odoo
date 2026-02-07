@@ -322,20 +322,22 @@ const CourseForm = () => {
             </div>
 
             <div className="max-w-6xl mx-auto mt-8 px-6 space-y-6">
-                {/* Action Bar */}
-                <div className="flex gap-2">
-                    <Button variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 shadow-sm"
-                        onClick={() => setActiveTab('attendees')}>
-                        Contact Attendees
-                    </Button>
-                    <Button variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 shadow-sm"
-                        onClick={() => {
-                            setActiveTab('attendees');
-                            setShowAttendeeModal(true);
-                        }}>
-                        Add Attendees
-                    </Button>
-                </div>
+                {/* Action Bar - Admin Only */}
+                {user?.role === 'admin' && (
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 shadow-sm"
+                            onClick={() => setActiveTab('attendees')}>
+                            Contact Attendees
+                        </Button>
+                        <Button variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 shadow-sm"
+                            onClick={() => {
+                                setActiveTab('attendees');
+                                setShowAttendeeModal(true);
+                            }}>
+                            Add Attendees
+                        </Button>
+                    </div>
+                )}
 
                 {/* Course Title & High-level info */}
                 <div className="flex gap-6 items-start">
@@ -438,18 +440,20 @@ const CourseForm = () => {
                 <div className="bg-white rounded-xl border border-neutral-200 shadow-sm min-h-[500px] flex flex-col">
                     {/* Tabs Header */}
                     <div className="flex border-b border-neutral-200 px-6">
-                        {['Content', 'Description', 'Attendees', 'Options', 'Quiz'].map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab.toLowerCase())}
-                                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.toLowerCase()
-                                    ? 'border-primary text-primary'
-                                    : 'border-transparent text-neutral-500 hover:text-neutral-700'
-                                    }`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
+                        {['Content', 'Description', 'Attendees', 'Options', 'Quiz']
+                            .filter(tab => tab !== 'Options' || user?.role === 'admin')
+                            .map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab.toLowerCase())}
+                                    className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.toLowerCase()
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-neutral-500 hover:text-neutral-700'
+                                        }`}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
                     </div>
 
                     {/* Tab Panels */}
