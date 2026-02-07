@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Clock, Users, Star, Search, Play, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Logo } from '../components/ui/Logo';
+import Navbar from '../components/Navbar';
 
 const CoursesPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -40,34 +41,7 @@ const CoursesPage = () => {
     return (
         <div className="min-h-screen bg-neutral-50">
             {/* Navigation */}
-            <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl shadow-sm">
-                <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
-                        <Link to="/" className="flex items-center gap-2">
-                            <Logo className="h-10 w-10 text-primary" />
-                            <span className="text-2xl font-bold text-primary">LearnSphere</span>
-                        </Link>
-
-                        <div className="hidden md:flex items-center space-x-10">
-                            <Link to="/" className="text-neutral-600 hover:text-primary transition-colors font-medium">Home</Link>
-                            <Link to="/courses" className="text-primary font-medium">Explore</Link>
-                            <Link to="/community" className="text-neutral-600 hover:text-primary transition-colors font-medium">Community</Link>
-                            <Link to="/contact" className="text-neutral-600 hover:text-primary transition-colors font-medium">Contact</Link>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <Link to="/login" className="hidden lg:block text-neutral-600 hover:text-primary font-medium transition-colors">
-                                Sign In
-                            </Link>
-                            <Link to="/register">
-                                <Button className="rounded-full px-6 py-2.5 bg-primary hover:bg-primary-hover shadow-lg shadow-primary/30">
-                                    Get Started
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            <Navbar />
 
             {/* Hero Section */}
             <section className="pt-32 pb-12 bg-white">
