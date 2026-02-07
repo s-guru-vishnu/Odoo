@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Star, Trophy, Clock, CheckCircle, PlayCircle, ArrowRight, HelpCircle } from 'lucide-react';
+import { BookOpen, Star, Trophy, Clock, CircleCheck as CheckCircle, CirclePlay as PlayCircle, ArrowRight, CircleHelp as HelpCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -138,7 +138,7 @@ const UserDashboard = () => {
                                     )}
                                     <div className="absolute top-3 right-3">
                                         <Badge variant={getStatusColor(course.status)} className="shadow-sm">
-                                            {course.status.replace(/_/g, ' ')}
+                                            {(course.status || 'YET_TO_START').replace(/_/g, ' ')}
                                         </Badge>
                                     </div>
                                 </div>
