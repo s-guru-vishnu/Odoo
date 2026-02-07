@@ -138,7 +138,7 @@ const UserDashboard = () => {
                                     )}
                                     <div className="absolute top-3 right-3">
                                         <Badge variant={getStatusColor(course.status)} className="shadow-sm">
-                                            {course.status.replace(/_/g, ' ')}
+                                            {(course.status || 'YET_TO_START').replace(/_/g, ' ')}
                                         </Badge>
                                     </div>
                                 </div>
