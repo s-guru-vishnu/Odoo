@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle, Trophy, Book, ArrowRight, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { CircleHelp as HelpCircle, Trophy, Book, ArrowRight, Clock, CircleCheck as CheckCircle2, CircleAlert as AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
