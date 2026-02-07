@@ -160,8 +160,8 @@ const Register = () => {
                                         className="flex h-12 w-full rounded-lg border border-neutral-400 bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                         disabled={isLoading}
                                     >
-                                        <option value="user">Standard User</option>
-                                        <option value="admin">Administrator</option>
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
                                     </select>
                                 </div>
 
