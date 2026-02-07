@@ -142,14 +142,27 @@ module.exports = {
                 SELECT c.*, u.full_name as instructor_name 
                 FROM courses c
                 LEFT JOIN users u ON c.course_admin = u.id
-                WHERE c.id = $1 AND c.published = true
+                WHERE c.id = $1
             `, [id]);
 
             if (result.rows.length === 0) {
                 return res.status(404).json({ message: 'Course not found' });
             }
 
-            res.json(result.rows[0]);
+            const course = result.rows[0];
+            const userRole = (req.user.role || '').toUpperCase();
+            const userId = req.user.id;
+
+            // Allow access if: Published OR Admin OR (Instructor AND Owner)
+            if (
+                course.published ||
+                userRole === 'ADMIN' ||
+                (userRole === 'INSTRUCTOR' && course.course_admin === userId)
+            ) {
+                res.json(course);
+            } else {
+                res.status(404).json({ message: 'Course not found' });
+            }
         } catch (error) {
             console.error('FETCH COURSE DETAILS ERROR:', error);
             res.status(500).json({ message: 'Error fetching course details' });
@@ -162,14 +175,14 @@ module.exports = {
         try {
             const db = getDb();
             const result = await db.query(`
-                SELECT c.*, u.full_name as responsible_name, 
-                       COALESCE(array_agg(ct.tag) FILTER (WHERE ct.tag IS NOT NULL), '{}') as tags
+                SELECT c.*, u.full_name as responsible_name,
+                COALESCE(array_agg(ct.tag) FILTER(WHERE ct.tag IS NOT NULL), '{}') as tags
                 FROM courses c 
                 LEFT JOIN users u ON c.course_admin = u.id 
                 LEFT JOIN course_tags ct ON c.id = ct.course_id
                 WHERE c.id = $1
                 GROUP BY c.id, u.full_name
-            `, [id]);
+                `, [id]);
 
             if (result.rows.length === 0) {
                 return res.status(404).json({ message: 'Course not found' });
@@ -194,14 +207,14 @@ module.exports = {
                 JOIN users u ON r.user_id = u.id
                 WHERE r.course_id = $1
                 ORDER BY r.created_at DESC
-            `, [id]);
+                `, [id]);
 
             // Calculate average
             const avgRes = await db.query(`
                 SELECT AVG(rating) as average_rating, COUNT(*) as total_reviews
                 FROM reviews
                 WHERE course_id = $1
-            `, [id]);
+                `, [id]);
 
             res.json({
                 reviews: reviewsRes.rows,
@@ -222,9 +235,9 @@ module.exports = {
         try {
             const db = getDb();
             const result = await db.query(
-                `INSERT INTO courses (title, description, price, access_rule, course_admin) 
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                [title, description, price || 0, access_rule || 'OPEN', adminId]
+                `INSERT INTO courses(title, description, price, access_rule, visibility, course_admin)
+            VALUES($1, $2, $3, $4, $5, $6) RETURNING * `,
+                [title, description, price || 0, access_rule || 'OPEN', 'EVERYONE', adminId]
             );
             res.status(201).json(result.rows[0]);
         } catch (error) {
@@ -252,11 +265,11 @@ module.exports = {
 
             // Insert or Update review
             await db.query(`
-                INSERT INTO reviews (user_id, course_id, rating, review)
-                VALUES ($1, $2, $3, $4)
-                ON CONFLICT (user_id, course_id) 
+                INSERT INTO reviews(user_id, course_id, rating, review)
+            VALUES($1, $2, $3, $4)
+                ON CONFLICT(user_id, course_id) 
                 DO UPDATE SET rating = EXCLUDED.rating, review = EXCLUDED.review, created_at = now()
-            `, [userId, id, rating, review]);
+                `, [userId, id, rating, review]);
 
             res.status(201).json({ message: 'Review submitted successfully' });
         } catch (error) {
@@ -284,15 +297,15 @@ module.exports = {
 
             const result = await db.query(
                 `UPDATE courses 
-                 SET title = COALESCE($1, title), 
-                     description = COALESCE($2, description), 
-                     price = COALESCE($3, price), 
-                     access_rule = COALESCE($4, access_rule),
-                     image_url = COALESCE($5, image_url),
-                     visibility = COALESCE($6, visibility),
-                     course_admin = COALESCE($7, course_admin)
-                 WHERE id = $8 
-                 RETURNING *`,
+                 SET title = COALESCE($1, title),
+                description = COALESCE($2, description),
+                price = COALESCE($3, price),
+                access_rule = COALESCE($4, access_rule),
+                image_url = COALESCE($5, image_url),
+                visibility = COALESCE($6, visibility),
+                course_admin = COALESCE($7, course_admin)
+                 WHERE id = $8
+            RETURNING * `,
                 [title, description, price, access_rule, image_url, visibility, newCourseAdmin, id]
             );
 
@@ -329,7 +342,7 @@ module.exports = {
         try {
             const db = getDb();
             const result = await db.query(
-                `UPDATE courses SET published = $1 WHERE id = $2 RETURNING *`,
+                `UPDATE courses SET published = $1 WHERE id = $2 RETURNING * `,
                 [published, id]
             );
 
@@ -399,7 +412,7 @@ module.exports = {
                 JOIN users u ON e.user_id = u.id
                 WHERE e.course_id = $1
                 ORDER BY e.enrolled_at DESC
-            `, [id]);
+                `, [id]);
             res.json(result.rows);
         } catch (error) {
             console.error('GET ATTENDEES ERROR:', error);
@@ -434,7 +447,7 @@ module.exports = {
                 FROM enrollments e
                 JOIN users u ON e.user_id = u.id
                 WHERE e.course_id = $1 AND e.user_id = $2
-            `, [id, userId]);
+                `, [id, userId]);
 
             res.status(201).json(fullResult.rows[0]);
         } catch (error) {
@@ -452,11 +465,11 @@ module.exports = {
                 FROM users u
                 JOIN roles r ON u.role_id = r.id
                 WHERE r.name NOT ILIKE 'admin'
-                AND u.id NOT IN (
+                AND u.id NOT IN(
                     SELECT user_id FROM enrollments WHERE course_id = $1
                 )
                 ORDER BY u.full_name ASC
-            `, [id]);
+                `, [id]);
             res.json(result.rows);
         } catch (error) {
             console.error('GET ELIGIBLE LEARNERS ERROR:', error);

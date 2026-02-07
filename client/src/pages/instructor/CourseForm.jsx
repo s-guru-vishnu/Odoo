@@ -656,8 +656,8 @@ const CourseForm = () => {
                                                     id="visibility_public"
                                                     name="visibility"
                                                     type="radio"
-                                                    checked={!course.visibility || course.visibility === 'PUBLIC'}
-                                                    onChange={() => setCourse({ ...course, visibility: 'PUBLIC' })}
+                                                    checked={!course.visibility || course.visibility === 'EVERYONE'}
+                                                    onChange={() => setCourse({ ...course, visibility: 'EVERYONE' })}
                                                     className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
                                                 />
                                             </div>

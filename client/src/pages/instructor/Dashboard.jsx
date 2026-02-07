@@ -36,7 +36,8 @@ const CoursesDashboard = () => {
             const newCourse = await courseAPI.create({
                 title: 'New Course',
                 description: '',
-                status: 'DRAFT'
+                status: 'DRAFT',
+                visibility: 'EVERYONE'
             });
             navigate(`/instructor/course/${newCourse.id}/edit`);
         } catch (error) {

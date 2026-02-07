@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { LayoutDashboard, Users, Box, BarChart3, Settings, Menu, X, LogOut, User, Archive, Video, BookOpen, FileText } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { ZbButton } from '../ui/Button'; // Assuming Button export might have changed, but using standard import
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
 import { useAuth } from '../../context/AuthContext';
@@ -19,8 +18,6 @@ const Sidebar = ({ className, isOpen, onClose }) => {
         navItems = [
             { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
             { label: 'Users', icon: Users, path: '/admin/users' },
-            { label: 'CRM', icon: Users, path: '/crm' }, // Keeping remote additions
-            { label: 'Inventory', icon: Box, path: '/inventory' }, // Keeping remote additions
             { label: 'My Profile', icon: User, path: '/user/profile' },
             { label: 'Settings', icon: Settings, path: '/settings' },
         ];

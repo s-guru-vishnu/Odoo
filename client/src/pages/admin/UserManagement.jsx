@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, Edit, Trash2, Shield, Mail, CheckCircle, XCircle } from 'lucide-react';
-import { api, userAPI } from '../../services/api';
+import { userAPI } from '../../services/api';
 import { Button } from '../../components/ui/Button';
 
 const UserManagement = () => {
