@@ -10,7 +10,6 @@ import LandingPage from './pages/LandingPage';
 import CoursesPage from './pages/CoursesPage';
 import BlogPage from './pages/BlogPage';
 import LessonPlayer from './pages/learner/LessonPlayer';
-<<<<<<< HEAD
 import CourseOverview from './pages/learner/CourseOverview';
 import UserProfile from './pages/learner/UserProfile';
 import LiveClasses from './pages/learner/LiveClasses';
@@ -18,14 +17,12 @@ import LiveClassRoom from './pages/learner/LiveClassRoom';
 import Quizzes from './pages/learner/Quizzes';
 import WorkSubmission from './pages/learner/WorkSubmission';
 import ExploreCourses from './pages/learner/ExploreCourses';
-=======
 import FAQ from './pages/FAQ';
 import HelpCenter from './pages/HelpCenter';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
 import CommunityPage from './pages/CommunityPage';
->>>>>>> d46fd84 (Updated the Front Pages UI/UX & Backend)
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();

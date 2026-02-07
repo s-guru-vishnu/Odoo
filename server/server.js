@@ -62,14 +62,11 @@ app.get('/debug-env', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
-<<<<<<< HEAD
 app.use('/api/learner', require('./routes/learnerRoutes'));
 app.use('/api/ai', require('./routes/chatRoutes'));
 app.use('/api/live-classes', require('./routes/liveClassRoutes'));
 app.use('/api/assignments', require('./routes/assignmentRoutes'));
-=======
 app.use('/api/public', require('./routes/publicRoutes'));
->>>>>>> d46fd84 (Updated the Front Pages UI/UX & Backend)
 
 // Serve static assets from the React app
 const buildPath = path.join(__dirname, '../client/dist');
