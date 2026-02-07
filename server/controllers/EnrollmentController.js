@@ -76,8 +76,8 @@ module.exports = {
             const badgesRes = await db.query(`SELECT * FROM badges ORDER BY min_points ASC`);
             const badges = badgesRes.rows;
 
-            let currentBadge = badges[0];
-            let nextBadge = null;
+            let currentBadge = badges.length > 0 ? badges[0] : { name: 'Novice', min_points: 0 };
+            let nextBadge = badges.length > 0 ? badges[1] || null : null;
 
             for (let i = badges.length - 1; i >= 0; i--) {
                 if (totalPoints >= badges[i].min_points) {
@@ -87,13 +87,13 @@ module.exports = {
                 }
             }
 
-            if (totalPoints < badges[0].min_points) {
+            if (badges.length > 0 && totalPoints < badges[0].min_points) {
                 currentBadge = { name: 'Novice', min_points: 0 };
                 nextBadge = badges[0];
             }
 
             let progress = 100;
-            if (nextBadge) {
+            if (nextBadge && nextBadge.min_points !== currentBadge.min_points) {
                 const range = nextBadge.min_points - currentBadge.min_points;
                 const earned = totalPoints - currentBadge.min_points;
                 progress = Math.round((earned / range) * 100);
