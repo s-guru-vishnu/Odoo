@@ -1,5 +1,5 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-(UUID generation, security best practice)
+ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- (UUID generation, security best practice)
 
 CREATE ROLE app_admin;
 CREATE ROLE app_instructor;

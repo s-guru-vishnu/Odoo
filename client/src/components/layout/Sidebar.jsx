@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Box, BarChart3, Settings, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Box, BarChart3, Settings, Menu, X, LogOut, User, Archive, Video, BookOpen, FileText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
@@ -12,13 +12,43 @@ const Sidebar = ({ className, isOpen, onClose }) => {
     // Dynamic dashboard path based on role
     const dashboardPath = user?.role?.toLowerCase() === 'admin' ? '/admin/dashboard' : '/user/dashboard';
 
-    const navItems = [
+    // Base items (common or conditional)
+    const baseItems = [
         { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
-        { label: 'CRM / Sales', icon: Users, path: '/crm' },
-        { label: 'Inventory', icon: Box, path: '/inventory' },
-        { label: 'Accounting', icon: BarChart3, path: '/accounting' },
-        { label: 'Settings', icon: Settings, path: '/settings' },
     ];
+
+    // Conditional items
+    if (user?.role?.toLowerCase() === 'admin') {
+        baseItems.push({ label: 'Manage Users', icon: Users, path: '/admin/users' });
+        baseItems.push({ label: 'System Settings', icon: Settings, path: '/settings' });
+    } else {
+        baseItems.push({ label: 'My Learning', icon: Box, path: '/user/dashboard' });
+        baseItems.push({ label: 'My Profile', icon: User, path: '/user/profile' });
+        // baseItems.push({ label: 'Catalog', icon: Archive, path: '/courses' }); // If catalog page exists
+    }
+
+    // Let's refine the logic:
+    let navItems = [];
+    if (user?.role?.toLowerCase() === 'admin') {
+        navItems = [
+            { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
+            { label: 'Users', icon: Users, path: '/admin/users' },
+            { label: 'CRM', icon: Users, path: '/crm' },
+            { label: 'Inventory', icon: Box, path: '/inventory' },
+            { label: 'Settings', icon: Settings, path: '/settings' },
+        ];
+    } else {
+        // Learner / User
+        navItems = [
+            { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
+            { label: 'My Courses', icon: Box, path: '/user/dashboard' },
+            { label: 'Explore Courses', icon: Archive, path: '/courses/explore' },
+            { label: 'Live Classes', icon: Video, path: '/live-classes' },
+            { label: 'Upcoming Quizzes', icon: BookOpen, path: '/quizzes' },
+            { label: 'Assignments', icon: FileText, path: '/assignments' },
+            { label: 'My Profile', icon: User, path: '/user/profile' },
+        ];
+    }
 
     const getInitials = (name) => {
         if (!name) return '??';
@@ -80,16 +110,16 @@ const Sidebar = ({ className, isOpen, onClose }) => {
                 <div className="absolute bottom-4 left-4 right-4">
                     <div className="p-4 bg-white rounded-xl border border-neutral-200 shadow-sm flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                            {getInitials(user?.name)}
+                            {getInitials(user?.full_name || user?.name)}
                         </div>
                         <div className="flex-1 overflow-hidden">
-                            <p className="text-sm font-medium truncate">{user?.name || 'Guest User'}</p>
+                            <p className="text-sm font-medium truncate text-neutral-900">{user?.full_name || user?.name || 'Guest User'}</p>
                             <p className="text-xs text-neutral-500 truncate capitalize">{user?.role || 'Guest'}</p>
                         </div>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-neutral-400 hover:text-red-500"
+                            className="h-8 w-8 text-neutral-400 hover:text-red-500 hover:bg-red-500/10"
                             onClick={logout}
                         >
                             <LogOut className="h-4 w-4" />

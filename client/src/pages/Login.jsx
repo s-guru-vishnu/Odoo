@@ -20,35 +20,6 @@ const Login = () => {
         setError('');
         setIsLoading(true);
 
-        if (email === 'guruv0707@gmail.com' && password === 'Guru@2006') {
-            setTimeout(() => {
-                const dummyUser = {
-                    id: 'dummy-user-001',
-                    name: 'Admin User',
-                    email: 'guruv0707@gmail.com',
-                    role: 'ADMIN'
-                };
-                login(dummyUser, 'dummy-token-xyz');
-                navigate('/admin/dashboard');
-                setIsLoading(false);
-            }, 1000);
-            return;
-        }
-        if (email === 'kit28.24bad052@gmail.com' && password === 'Guru@2006') {
-            setTimeout(() => {
-                const dummyUser = {
-                    id: 'dummy-user-002',
-                    name: 'User',
-                    email: 'kit28.24bad052@gmail.com',
-                    role: 'LEARNER'
-                };
-                login(dummyUser, 'dummy-token-xyz');
-                navigate('/user/dashboard');
-                setIsLoading(false);
-            }, 1000);
-            return;
-        }
-
         try {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',

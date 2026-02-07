@@ -8,6 +8,13 @@ import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import LessonPlayer from './pages/learner/LessonPlayer';
+import CourseOverview from './pages/learner/CourseOverview';
+import UserProfile from './pages/learner/UserProfile';
+import LiveClasses from './pages/learner/LiveClasses';
+import LiveClassRoom from './pages/learner/LiveClassRoom';
+import Quizzes from './pages/learner/Quizzes';
+import WorkSubmission from './pages/learner/WorkSubmission';
+import ExploreCourses from './pages/learner/ExploreCourses';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();
@@ -53,11 +60,45 @@ function App() {
                     />
 
                     <Route
+                        path="/courses/explore"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <DashboardLayout>
+                                    <ExploreCourses />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/admin/dashboard"
                         element={
                             <ProtectedRoute allowedRoles={['admin', 'ADMIN']}>
                                 <DashboardLayout>
                                     <AdminDashboard />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* User Profile */}
+                    <Route
+                        path="/user/profile"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <DashboardLayout>
+                                    <UserProfile />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Course Overview */}
+                    <Route
+                        path="/courses/:id"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <DashboardLayout>
+                                    <CourseOverview />
                                 </DashboardLayout>
                             </ProtectedRoute>
                         }
@@ -69,6 +110,45 @@ function App() {
                         element={
                             <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
                                 <LessonPlayer />
+                            </ProtectedRoute>
+                        }
+                    />
+                    {/* Live Classes */}
+                    <Route
+                        path="/live-classes"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <DashboardLayout>
+                                    <LiveClasses />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/live-class/:id"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <LiveClassRoom />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/quizzes"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <DashboardLayout>
+                                    <Quizzes />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/assignments"
+                        element={
+                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                                <DashboardLayout>
+                                    <WorkSubmission />
+                                </DashboardLayout>
                             </ProtectedRoute>
                         }
                     />
