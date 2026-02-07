@@ -41,6 +41,10 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     try {
         const db = getDb();
 
@@ -57,6 +61,12 @@ const login = async (req, res) => {
 
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Handle case where hashed_password might be missing or null
+        if (!user.hashed_password) {
+            console.error(`User ${email} has no hashed_password in database`);
+            return res.status(500).json({ message: 'Account configuration error' });
         }
 
         const validPassword = await bcrypt.compare(password, user.hashed_password);
