@@ -11,5 +11,20 @@ export default defineConfig({
                 changeOrigin: true
             }
         }
+    },
+    build: {
+        // Handle framer-motion and Three.js module directives
+        rollupOptions: {
+            onwarn(warning, warn) {
+                // Suppress "use client" directive warnings
+                if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+                    return;
+                }
+                warn(warning);
+            }
+        }
+    },
+    optimizeDeps: {
+        include: ['framer-motion', 'three', '@react-three/fiber', '@react-three/drei']
     }
 })
