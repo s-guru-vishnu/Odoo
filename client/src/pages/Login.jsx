@@ -38,6 +38,8 @@ const Login = () => {
             const userRole = data.user.role?.toLowerCase();
             if (userRole === 'admin') {
                 navigate('/admin/dashboard');
+            } else if (userRole === 'instructor') {
+                navigate('/instructor/dashboard');
             } else {
                 navigate('/user/dashboard');
             }

@@ -1,15 +1,15 @@
 const { getDb } = require('./config/db');
 require('dotenv').config();
 
-async function listUsers() {
+async function checkCoursesSchema() {
     const db = getDb();
     try {
         const res = await db.query(`
-            SELECT u.id, u.full_name, u.email, u.role_id, r.name as role_name 
-            FROM users u
-            LEFT JOIN roles r ON u.role_id = r.id
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'courses'
         `);
-        console.log('Users:', res.rows);
+        console.log('Courses Table Schema:', res.rows);
         process.exit(0);
     } catch (err) {
         console.error('Error:', err.message);
@@ -17,4 +17,4 @@ async function listUsers() {
     }
 }
 
-listUsers();
+checkCoursesSchema();

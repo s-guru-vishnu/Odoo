@@ -110,7 +110,30 @@ module.exports = {
         }
     },
 
-    // Fetches full details for a single course
+    // Fetches all courses for instructor (Both Draft and Published)
+    getInstructorCourses: async (req, res) => {
+        try {
+            const db = getDb();
+            // Fetch all courses created by this user, order by newest first
+            // Include lesson count and total duration
+            const result = await db.query(`
+                SELECT c.*, 
+                       COUNT(l.id) as lesson_count, 
+                       COALESCE(SUM(l.duration), 0) as total_duration
+                FROM courses c
+                LEFT JOIN lessons l ON c.id = l.course_id
+                WHERE c.course_admin = $1
+                GROUP BY c.id
+                ORDER BY c.created_at DESC
+            `, [req.user.id]);
+            res.json(result.rows);
+        } catch (error) {
+            console.error('FETCH INSTRUCTOR COURSES ERROR:', error);
+            res.status(500).json({ message: 'Error fetching courses' });
+        }
+    },
+
+    // Fetches full details for a single course (Public/Learner View)
     getCourseDetails: async (req, res) => {
         const { id } = req.params;
         try {
@@ -129,6 +152,32 @@ module.exports = {
             res.json(result.rows[0]);
         } catch (error) {
             console.error('FETCH COURSE DETAILS ERROR:', error);
+            res.status(500).json({ message: 'Error fetching course details' });
+        }
+    },
+
+    // Fetches full details for a single course (Admin/Editor View - No published check)
+    getAdminCourseDetails: async (req, res) => {
+        const { id } = req.params;
+        try {
+            const db = getDb();
+            const result = await db.query(`
+                SELECT c.*, u.full_name as responsible_name, 
+                       COALESCE(array_agg(ct.tag) FILTER (WHERE ct.tag IS NOT NULL), '{}') as tags
+                FROM courses c 
+                LEFT JOIN users u ON c.course_admin = u.id 
+                LEFT JOIN course_tags ct ON c.id = ct.course_id
+                WHERE c.id = $1
+                GROUP BY c.id, u.full_name
+            `, [id]);
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ message: 'Course not found' });
+            }
+
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error('FETCH ADMIN COURSE DETAILS ERROR:', error);
             res.status(500).json({ message: 'Error fetching course details' });
         }
     },
@@ -216,6 +265,202 @@ module.exports = {
         }
     },
 
-    updateCourse: (req, res) => { /* Update logic based on UUID */ },
-    togglePublish: (req, res) => { /* Visibility toggle logic */ },
+    updateCourse: async (req, res) => {
+        const { id } = req.params;
+        const { title, description, price, access_rule, image_url, visibility, tags } = req.body;
+
+        try {
+            const db = getDb();
+            await db.query('BEGIN');
+
+            // Check if admin is trying to update course_admin (Responsible)
+            let newCourseAdmin = undefined;
+            if (req.body.course_admin) {
+                const userCheck = await db.query('SELECT role_id FROM users WHERE id = $1', [req.user.id]);
+                if (userCheck.rows[0].role_id === 1) {
+                    newCourseAdmin = req.body.course_admin;
+                }
+            }
+
+            const result = await db.query(
+                `UPDATE courses 
+                 SET title = COALESCE($1, title), 
+                     description = COALESCE($2, description), 
+                     price = COALESCE($3, price), 
+                     access_rule = COALESCE($4, access_rule),
+                     image_url = COALESCE($5, image_url),
+                     visibility = COALESCE($6, visibility),
+                     course_admin = COALESCE($7, course_admin)
+                 WHERE id = $8 
+                 RETURNING *`,
+                [title, description, price, access_rule, image_url, visibility, newCourseAdmin, id]
+            );
+
+            if (result.rows.length === 0) {
+                await db.query('ROLLBACK');
+                return res.status(404).json({ message: 'Course not found' });
+            }
+
+            // Update Tags if provided
+            if (tags && Array.isArray(tags)) {
+                await db.query('DELETE FROM course_tags WHERE course_id = $1', [id]);
+                for (const tag of tags) {
+                    await db.query('INSERT INTO course_tags (course_id, tag) VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, tag]);
+                }
+            }
+
+            await db.query('COMMIT');
+
+            const updatedCourse = result.rows[0];
+            updatedCourse.tags = tags || [];
+
+            res.json(updatedCourse);
+        } catch (error) {
+            await db.query('ROLLBACK');
+            console.error('UPDATE COURSE ERROR:', error);
+            res.status(500).json({ message: 'Error updating course' });
+        }
+    },
+
+    togglePublish: async (req, res) => {
+        const { id } = req.params;
+        const { published } = req.body; // Expect boolean
+
+        try {
+            const db = getDb();
+            const result = await db.query(
+                `UPDATE courses SET published = $1 WHERE id = $2 RETURNING *`,
+                [published, id]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ message: 'Course not found' });
+            }
+
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error('TOGGLE PUBLISH ERROR:', error);
+            res.status(500).json({ message: 'Error updating publish status' });
+        }
+    },
+
+    deleteCourse: async (req, res) => {
+        const { id } = req.params;
+        try {
+            const db = getDb();
+            // Ensure the user owns the course before deleting
+            const check = await db.query('SELECT * FROM courses WHERE id = $1 AND course_admin = $2', [id, req.user.id]);
+            if (check.rows.length === 0) {
+                return res.status(404).json({ message: 'Course not found or unauthorized' });
+            }
+
+            // Manual Cascade Delete for tables without ON DELETE CASCADE
+            // 1. Delete Enrollments
+            await db.query('DELETE FROM enrollments WHERE course_id = $1', [id]);
+
+            // 2. Delete Course Progress (No FK, but good practice to clean up)
+            await db.query('DELETE FROM course_progress WHERE course_id = $1', [id]);
+
+            // 3. Delete Reviews
+            await db.query('DELETE FROM reviews WHERE course_id = $1', [id]);
+
+            // 4. Delete Quizzes and related data
+            // Get all quizzes for this course
+            const quizzes = await db.query('SELECT id FROM quizzes WHERE course_id = $1', [id]);
+            for (const quiz of quizzes.rows) {
+                const quizId = quiz.id;
+                await db.query('DELETE FROM quiz_attempts WHERE quiz_id = $1', [quizId]);
+                await db.query('DELETE FROM quiz_rewards WHERE quiz_id = $1', [quizId]);
+                const questions = await db.query('SELECT id FROM quiz_questions WHERE quiz_id = $1', [quizId]);
+                for (const q of questions.rows) {
+                    await db.query('DELETE FROM quiz_options WHERE question_id = $1', [q.id]);
+                }
+                await db.query('DELETE FROM quiz_questions WHERE quiz_id = $1', [quizId]);
+            }
+            await db.query('DELETE FROM quizzes WHERE course_id = $1', [id]);
+
+            // 5. Delete Course (Lessons and Tags have ON DELETE CASCADE)
+            await db.query('DELETE FROM courses WHERE id = $1', [id]);
+
+            res.json({ message: 'Course deleted successfully' });
+        } catch (error) {
+            console.error('DELETE COURSE ERROR:', error);
+            res.status(500).json({ message: 'Error deleting course' });
+        }
+    },
+
+    getAttendees: async (req, res) => {
+        const { id } = req.params;
+        try {
+            const db = getDb();
+            const result = await db.query(`
+                SELECT u.id, u.full_name, u.email, e.enrolled_at, e.invited
+                FROM enrollments e
+                JOIN users u ON e.user_id = u.id
+                WHERE e.course_id = $1
+                ORDER BY e.enrolled_at DESC
+            `, [id]);
+            res.json(result.rows);
+        } catch (error) {
+            console.error('GET ATTENDEES ERROR:', error);
+            res.status(500).json({ message: 'Error fetching attendees' });
+        }
+    },
+
+    addAttendee: async (req, res) => {
+        const { id } = req.params;
+        const { email } = req.body;
+        try {
+            const db = getDb();
+
+            const userResult = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+            if (userResult.rows.length === 0) {
+                return res.status(404).json({ message: 'User not found with this email' });
+            }
+            const userId = userResult.rows[0].id;
+
+            const enrollCheck = await db.query('SELECT * FROM enrollments WHERE course_id = $1 AND user_id = $2', [id, userId]);
+            if (enrollCheck.rows.length > 0) {
+                return res.status(400).json({ message: 'User is already enrolled in this course' });
+            }
+
+            await db.query(
+                'INSERT INTO enrollments (course_id, user_id, invited) VALUES ($1, $2, true) RETURNING *',
+                [id, userId]
+            );
+
+            const fullResult = await db.query(`
+                SELECT u.id, u.full_name, u.email, e.enrolled_at, e.invited
+                FROM enrollments e
+                JOIN users u ON e.user_id = u.id
+                WHERE e.course_id = $1 AND e.user_id = $2
+            `, [id, userId]);
+
+            res.status(201).json(fullResult.rows[0]);
+        } catch (error) {
+            console.error('ADD ATTENDEE ERROR:', error);
+            res.status(500).json({ message: 'Error adding attendee' });
+        }
+    },
+
+    getEligibleLearners: async (req, res) => {
+        const { id } = req.params;
+        try {
+            const db = getDb();
+            const result = await db.query(`
+                SELECT u.id, u.full_name, u.email, r.name as role_name
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                WHERE r.name NOT ILIKE 'admin'
+                AND u.id NOT IN (
+                    SELECT user_id FROM enrollments WHERE course_id = $1
+                )
+                ORDER BY u.full_name ASC
+            `, [id]);
+            res.json(result.rows);
+        } catch (error) {
+            console.error('GET ELIGIBLE LEARNERS ERROR:', error);
+            res.status(500).json({ message: 'Error fetching potential attendees' });
+        }
+    }
 };
