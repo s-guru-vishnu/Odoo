@@ -8,7 +8,9 @@ import { StatCard } from '../components/ui/StatCard';
 import { useAuth } from '../context/AuthContext';
 
 const UserDashboard = () => {
+    console.log('UserDashboard: Rendering...');
     const { user } = useAuth();
+    console.log('UserDashboard: User:', user);
     const navigate = useNavigate();
     const role = (user?.role || '').toString().trim().toUpperCase();
     const isInstructor = role === 'INSTRUCTOR' || role === 'MENTOR' || role === 'TEACHER';

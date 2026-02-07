@@ -1,6 +1,7 @@
 const { getDb } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const generateToken = require('../utils/generateToken');
 
 const register = async (req, res) => {
     const { name, email, password, role } = req.body;
@@ -64,11 +65,7 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role_name, name: user.full_name },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        const token = generateToken(user);
 
         res.json({
             token,
@@ -84,4 +81,32 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { register, login };
+const googleAuthCallback = (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.redirect("/login?error=oauth_failed");
+        }
+
+        const token = generateToken(user);
+
+        // Environment-aware redirect
+        // In development, redirect to the BACKEND port (current process)
+        // to bypass the frontend dev server and test production assets.
+        const port = process.env.PORT || 5000;
+        const CLIENT_URL = process.env.NODE_ENV === "production"
+            ? "https://odoo-app-elearning.up.railway.app"
+            : `http://localhost:${port}`;
+
+        console.log('Google Auth Callback: Redirecting to', CLIENT_URL);
+
+        res.redirect(`${CLIENT_URL}/auth-success?token=${token}`);
+
+    } catch (error) {
+        console.error("Google OAuth Error:", error);
+        res.redirect("/login?error=server_error");
+    }
+};
+
+module.exports = { register, login, googleAuthCallback };

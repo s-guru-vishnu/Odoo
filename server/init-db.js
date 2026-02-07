@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { getDb } = require('./config/db');
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
@@ -96,6 +97,9 @@ async function initDb() {
         };
         await ensureColumn('users', 'full_name', 'TEXT');
         await ensureColumn('users', 'password_hash', 'TEXT');
+        await ensureColumn('users', 'google_id', 'TEXT');
+        await ensureColumn('users', 'avatar', 'TEXT');
+        await ensureColumn('users', 'provider', "TEXT DEFAULT 'google'");
         await ensureColumn('messages', 'sender_name', 'TEXT');
 
         console.log('✅ Database Schema Verified and Initialized');
