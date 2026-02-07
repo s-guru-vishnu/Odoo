@@ -26,7 +26,7 @@ const Login = () => {
                     id: 'dummy-user-001',
                     name: 'Admin User',
                     email: 'guruv0707@gmail.com',
-                    role: 'admin'
+                    role: 'ADMIN'
                 };
                 login(dummyUser, 'dummy-token-xyz');
                 navigate('/admin/dashboard');
@@ -40,7 +40,7 @@ const Login = () => {
                     id: 'dummy-user-002',
                     name: 'User',
                     email: 'kit28.24bad052@gmail.com',
-                    role: 'user'
+                    role: 'LEARNER'
                 };
                 login(dummyUser, 'dummy-token-xyz');
                 navigate('/user/dashboard');

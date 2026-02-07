@@ -19,7 +19,7 @@ const UserDashboard = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
-            setMessages(data);
+            setMessages(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to fetch messages:', error);
         } finally {
