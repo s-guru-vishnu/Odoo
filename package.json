@@ -8,5 +8,8 @@
         "postinstall": "cd client && npm install && cd ../server && npm install",
         "start": "node server/init-db.js && node server/server.js",
         "dev": "npx concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1"
     }
 }

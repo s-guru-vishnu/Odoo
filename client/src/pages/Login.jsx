@@ -24,7 +24,7 @@ const Login = () => {
             setTimeout(() => {
                 const dummyUser = {
                     id: 'dummy-user-001',
-                    name: 'Admin',
+                    name: 'Admin User',
                     email: 'guruv0707@gmail.com',
                     role: 'admin'
                 };
@@ -64,7 +64,8 @@ const Login = () => {
 
             login(data.user, data.token);
 
-            if (data.user.role === 'admin') {
+            const userRole = data.user.role?.toLowerCase();
+            if (userRole === 'admin') {
                 navigate('/admin/dashboard');
             } else {
                 navigate('/user/dashboard');

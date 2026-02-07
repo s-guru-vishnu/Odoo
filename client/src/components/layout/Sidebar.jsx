@@ -4,15 +4,26 @@ import { LayoutDashboard, Users, Box, BarChart3, Settings, Menu, X, LogOut } fro
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ className, isOpen, onClose }) => {
+    const { user, logout } = useAuth();
+
+    // Dynamic dashboard path based on role
+    const dashboardPath = user?.role?.toLowerCase() === 'admin' ? '/admin/dashboard' : '/user/dashboard';
+
     const navItems = [
-        { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+        { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
         { label: 'CRM / Sales', icon: Users, path: '/crm' },
         { label: 'Inventory', icon: Box, path: '/inventory' },
         { label: 'Accounting', icon: BarChart3, path: '/accounting' },
         { label: 'Settings', icon: Settings, path: '/settings' },
     ];
+
+    const getInitials = (name) => {
+        if (!name) return '??';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    };
 
     return (
         <>
@@ -69,13 +80,18 @@ const Sidebar = ({ className, isOpen, onClose }) => {
                 <div className="absolute bottom-4 left-4 right-4">
                     <div className="p-4 bg-white rounded-xl border border-neutral-200 shadow-sm flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                            JD
+                            {getInitials(user?.name)}
                         </div>
                         <div className="flex-1 overflow-hidden">
-                            <p className="text-sm font-medium truncate">John Doe</p>
-                            <p className="text-xs text-neutral-500 truncate">Admin</p>
+                            <p className="text-sm font-medium truncate">{user?.name || 'Guest User'}</p>
+                            <p className="text-xs text-neutral-500 truncate capitalize">{user?.role || 'Guest'}</p>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-red-500">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-neutral-400 hover:text-red-500"
+                            onClick={logout}
+                        >
                             <LogOut className="h-4 w-4" />
                         </Button>
                     </div>
