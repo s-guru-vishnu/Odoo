@@ -54,15 +54,30 @@ const Quizzes = () => {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-bold text-neutral-900">
-                        My <span className="text-primary">Quizzes</span>
+        <div className="space-y-10 animate-in fade-in duration-500 pb-20">
+            {/* Hero Section */}
+            <div className="relative rounded-[2rem] overflow-hidden bg-primary p-8 md:p-12 text-white shadow-2xl shadow-primary/20">
+                <div className="absolute top-0 right-0 p-8 opacity-20">
+                    <HelpCircle className="w-48 h-48 text-white" />
+                </div>
+                <div className="relative z-10 space-y-6 max-w-2xl">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-none italic font-medium px-4 py-1">
+                        Assessments
+                    </Badge>
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
+                        Transform Your <span className="text-amber-300">Skillset</span>
                     </h1>
-                    <p className="text-neutral-500">
-                        Test your knowledge and earn points across your enrolled courses.
+                    <p className="text-lg md:text-xl text-neutral-100 font-medium leading-relaxed">
+                        Assess your knowledge, track your progress, and join <span className="text-white font-bold italic">Live</span> sessions to clear your doubts.
                     </p>
+                    <div className="flex flex-wrap gap-4 pt-4">
+                        <Button onClick={() => navigate('/courses/explore')} className="rounded-full h-14 px-8 bg-white text-primary hover:bg-neutral-100 border-none font-bold text-lg shadow-lg">
+                            Explore More Courses
+                        </Button>
+                        <Button onClick={() => navigate('/live-classes')} variant="outline" className="rounded-full h-14 px-8 border-white/30 text-white hover:bg-white/10 font-bold text-lg backdrop-blur-sm">
+                            Experience Live Learning
+                        </Button>
+                    </div>
                 </div>
             </div>
 

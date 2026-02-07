@@ -121,12 +121,17 @@ const Navbar = () => {
                                                 <Link
                                                     to={user.role?.toLowerCase() === 'admin' ? '/admin/dashboard' : '/user/dashboard'}
                                                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-primary/5 hover:text-primary transition-colors"
+                                                    onClick={() => setUserMenuOpen(false)}
                                                 >
                                                     <LayoutDashboard className="w-4 h-4" />
                                                     Go to Dashboard
                                                 </Link>
 
-                                                <Link to="/user/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-primary/5 hover:text-primary transition-colors">
+                                                <Link
+                                                    to="/user/profile"
+                                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:bg-primary/5 hover:text-primary transition-colors"
+                                                    onClick={() => setUserMenuOpen(false)}
+                                                >
                                                     <User className="w-4 h-4" />
                                                     My Profile
                                                 </Link>
@@ -204,6 +209,9 @@ const Navbar = () => {
                                         </div>
                                         <Link to="/user/dashboard" onClick={() => setMobileMenuOpen(false)}>
                                             <Button className="w-full justify-center h-12 rounded-xl mb-3">Dashboard</Button>
+                                        </Link>
+                                        <Link to="/user/profile" onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" className="w-full justify-center h-12 rounded-xl mb-3 font-bold">My Profile</Button>
                                         </Link>
                                         <Button
                                             variant="outline"

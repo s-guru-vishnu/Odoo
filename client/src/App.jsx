@@ -101,7 +101,7 @@ function App() {
                     <Route
                         path="/user/profile"
                         element={
-                            <ProtectedRoute allowedRoles={['user', 'LEARNER', 'INSTRUCTOR']}>
+                            <ProtectedRoute allowedRoles={['admin', 'ADMIN', 'user', 'LEARNER', 'INSTRUCTOR']}>
                                 <DashboardLayout>
                                     <UserProfile />
                                 </DashboardLayout>

@@ -12,35 +12,29 @@ const Sidebar = ({ className, isOpen, onClose }) => {
     // Dynamic dashboard path based on role
     const dashboardPath = user?.role?.toLowerCase() === 'admin' ? '/admin/dashboard' : '/user/dashboard';
 
-    // Base items (common or conditional)
-    const baseItems = [
-        { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
-    ];
-
-    // Conditional items
-    if (user?.role?.toLowerCase() === 'admin') {
-        baseItems.push({ label: 'Manage Users', icon: Users, path: '/admin/users' });
-        baseItems.push({ label: 'System Settings', icon: Settings, path: '/settings' });
-    } else {
-        baseItems.push({ label: 'My Learning', icon: Box, path: '/user/dashboard' });
-        baseItems.push({ label: 'My Profile', icon: User, path: '/user/profile' });
-        // baseItems.push({ label: 'Catalog', icon: Archive, path: '/courses' }); // If catalog page exists
-    }
-
-    // Let's refine the logic:
     let navItems = [];
-    if (user?.role?.toLowerCase() === 'admin') {
+    const role = (user?.role || '').toString().trim().toUpperCase();
+
+    if (role === 'ADMIN') {
         navItems = [
-            { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
+            { label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
             { label: 'Users', icon: Users, path: '/admin/users' },
             { label: 'CRM', icon: Users, path: '/crm' },
             { label: 'Inventory', icon: Box, path: '/inventory' },
+            { label: 'My Profile', icon: User, path: '/user/profile' },
             { label: 'Settings', icon: Settings, path: '/settings' },
         ];
-    } else {
-        // Learner / User
+    } else if (role === 'INSTRUCTOR' || role === 'MENTOR' || role === 'TEACHER') {
         navItems = [
-            { label: 'Dashboard', icon: LayoutDashboard, path: dashboardPath },
+            { label: 'Dashboard', icon: LayoutDashboard, path: '/user/dashboard' },
+            { label: 'Explore Courses', icon: Archive, path: '/courses/explore' },
+            { label: 'Live Classes', icon: Video, path: '/live-classes' },
+            { label: 'My Profile', icon: User, path: '/user/profile' },
+        ];
+    } else {
+        // Learner / User / Default
+        navItems = [
+            { label: 'Dashboard', icon: LayoutDashboard, path: '/user/dashboard' },
             { label: 'My Courses', icon: Box, path: '/user/dashboard' },
             { label: 'Explore Courses', icon: Archive, path: '/courses/explore' },
             { label: 'Live Classes', icon: Video, path: '/live-classes' },
