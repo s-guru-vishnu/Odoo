@@ -141,7 +141,7 @@ const ExploreCourses = () => {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
                                 <div className="absolute top-4 right-4">
                                     <Badge className="bg-white/90 text-primary border-none shadow-sm backdrop-blur-sm">
-                                        {course.access_rule === 'OPEN' ? 'Free Access' : `$${course.price}`}
+                                        {course.price > 0 ? `₹${course.price}` : 'Free'}
                                     </Badge>
                                 </div>
                             </div>

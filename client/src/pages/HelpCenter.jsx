@@ -70,7 +70,7 @@ const HelpCenter = () => {
             {/* Footer */}
             <footer className="bg-neutral-900 text-white py-12">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-                    <p className="text-neutral-400">&copy; 2026 LearnSphere All rights reserved.</p>
+                    <p className="text-neutral-400">&copy; 2026 <Link to="/" className="hover:text-white transition-colors">LearnSphere</Link> All rights reserved.</p>
                 </div>
             </footer>
         </div>
