@@ -8,17 +8,9 @@ import { Logo } from '../components/ui/Logo';
 import { ScrollProgressBar } from '../components/ui/ScrollProgressBar';
 import { AnimatedSection } from '../components/ui/AnimatedSection';
 import { Typewriter } from '../components/ui/Typewriter';
+import Navbar from '../components/Navbar';
 
 const LandingPage = () => {
-    const [isScrolled, setIsScrolled] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     // Single color theme - Primary Plum
     const featureIconBg = "bg-primary/10";
@@ -52,54 +44,7 @@ const LandingPage = () => {
             <ScrollProgressBar />
 
             {/* Navigation */}
-            <motion.nav
-                className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled
-                    ? 'bg-white/90 backdrop-blur-xl shadow-sm'
-                    : 'bg-transparent'
-                    }`}
-                initial={{ y: -100 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.6 }}
-            >
-                <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
-                        {/* Logo */}
-                        <motion.div
-                            className="flex items-center gap-2"
-                            whileHover={{ scale: 1.02 }}
-                        >
-                            <Logo className="h-10 w-10" />
-                            <span className="text-2xl font-bold text-primary">LearnSphere</span>
-                        </motion.div>
-
-                        {/* Nav Links */}
-                        <div className="hidden md:flex items-center space-x-10">
-                            <Link to="/" className="text-primary font-medium">Home</Link>
-                            <Link to="/courses" className="text-neutral-600 hover:text-primary transition-colors font-medium">Explore</Link>
-                            <Link to="/community" className="text-neutral-600 hover:text-primary transition-colors font-medium">Community</Link>
-                            <Link to="/contact" className="text-neutral-600 hover:text-primary transition-colors font-medium">Contact</Link>
-                        </div>
-
-                        {/* Sign Up Button */}
-                        {/* Buttons */}
-                        <div className="flex items-center gap-4">
-                            <Link to="/login" className="hidden lg:block text-neutral-600 hover:text-primary font-medium transition-colors">
-                                Sign In
-                            </Link>
-                            <Link to="/register">
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    <Button className="rounded-full px-6 py-2.5 bg-primary hover:bg-primary-hover shadow-lg shadow-primary/30">
-                                        Get Started
-                                    </Button>
-                                </motion.div>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </motion.nav>
+            <Navbar />
 
             {/* Hero Section - Split Layout */}
             <section className="relative pt-28 pb-16 lg:pt-32 lg:pb-24 min-h-[90vh] flex items-center">
