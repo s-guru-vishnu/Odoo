@@ -15,8 +15,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/login" />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-        return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'} />;
+    const userRole = user.role?.toLowerCase();
+    const isAllowed = allowedRoles.some(role => role.toLowerCase() === userRole);
+
+    if (allowedRoles && !isAllowed) {
+        console.log(`Access denied for role: ${userRole}. Redirecting to ${userRole === 'admin' ? '/admin/dashboard' : '/user/dashboard'}`);
+        return <Navigate to={userRole === 'admin' ? '/admin/dashboard' : '/user/dashboard'} />;
     }
 
     return children;
