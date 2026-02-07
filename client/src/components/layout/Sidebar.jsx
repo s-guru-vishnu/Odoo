@@ -1,0 +1,88 @@
+import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, Users, Box, BarChart3, Settings, Menu, X, LogOut } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import { Button } from '../ui/Button';
+import { Logo } from '../ui/Logo';
+
+const Sidebar = ({ className, isOpen, onClose }) => {
+    const navItems = [
+        { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+        { label: 'CRM / Sales', icon: Users, path: '/crm' },
+        { label: 'Inventory', icon: Box, path: '/inventory' },
+        { label: 'Accounting', icon: BarChart3, path: '/accounting' },
+        { label: 'Settings', icon: Settings, path: '/settings' },
+    ];
+
+    return (
+        <>
+            {/* Mobile Overlay */}
+            <div
+                className={cn(
+                    "fixed inset-0 z-40 bg-black/50 transition-opacity lg:hidden",
+                    isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}
+                onClick={onClose}
+            />
+
+            {/* Sidebar Container */}
+            <aside
+                className={cn(
+                    "fixed top-0 left-0 z-50 h-screen w-64 bg-neutral-50 border-r border-neutral-200 transition-transform duration-300 lg:translate-x-0 lg:static",
+                    isOpen ? "translate-x-0" : "-translate-x-full",
+                    className
+                )}
+            >
+                <div className="flex h-16 items-center px-6 border-b border-neutral-200 gap-2">
+                    <Logo className="h-8 w-8" />
+                    <span className="text-2xl font-bold text-primary tracking-tight">LearnSphere</span>
+                    <button className="ml-auto lg:hidden" onClick={onClose}>
+                        <X className="h-6 w-6 text-neutral-500" />
+                    </button>
+                </div>
+
+                <nav className="p-4 space-y-1">
+                    {navItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            className={({ isActive }) => cn(
+                                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
+                                isActive
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-neutral-600 hover:bg-primary/5 hover:text-primary"
+                            )}
+                        >
+                            {({ isActive }) => (
+                                <>
+                                    <item.icon className={cn(
+                                        "h-5 w-5 transition-colors",
+                                        isActive ? "stroke-[2.5px]" : "stroke-2"
+                                    )} />
+                                    {item.label}
+                                </>
+                            )}
+                        </NavLink>
+                    ))}
+                </nav>
+
+                <div className="absolute bottom-4 left-4 right-4">
+                    <div className="p-4 bg-white rounded-xl border border-neutral-200 shadow-sm flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            JD
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <p className="text-sm font-medium truncate">John Doe</p>
+                            <p className="text-xs text-neutral-500 truncate">Admin</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-red-500">
+                            <LogOut className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </aside>
+        </>
+    );
+};
+
+export { Sidebar };

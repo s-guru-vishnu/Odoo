@@ -1,4 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Users, AlertCircle, CheckCircle, Save, Edit2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { StatCard } from '../components/ui/StatCard';
+import { BarChartComponent } from '../components/charts/BarChartComponent';
 
 const AdminDashboard = () => {
     const [messages, setMessages] = useState([]);
@@ -10,9 +16,7 @@ const AdminDashboard = () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('/api/messages/admin', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
             setMessages(data);
@@ -67,85 +71,155 @@ const AdminDashboard = () => {
         }
     };
 
-    return (
-        <div className="container">
-            <h1>Admin Dashboard - All User Messages</h1>
-            <div className="card">
-                {loading ? (
-                    <p>Loading messages...</p>
-                ) : messages.length === 0 ? (
-                    <p>No messages found from any users.</p>
-                ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
-                        <thead>
-                            <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border)' }}>
-                                <th style={{ padding: '1rem' }}>User</th>
-                                <th style={{ padding: '1rem' }}>Content</th>
-                                <th style={{ padding: '1rem' }}>Status</th>
-                                <th style={{ padding: '1rem' }}>Time</th>
-                                <th style={{ padding: '1rem' }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {messages.map((msg) => (
-                                <tr key={msg.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '1rem' }}><strong>{msg.sender_name}</strong></td>
-                                    <td style={{ padding: '1rem' }}>
-                                        {editingId === msg.id ? (
-                                            <textarea
-                                                value={editContent}
-                                                onChange={(e) => setEditContent(e.target.value)}
-                                                style={{ width: '100%' }}
-                                            />
-                                        ) : (
-                                            msg.content
-                                        )}
-                                    </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <span className={`status-badge status-${msg.status}`}>
-                                            {msg.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <small>{new Date(msg.created_at).toLocaleString()}</small>
-                                    </td>
-                                    <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            {editingId === msg.id ? (
-                                                <button
-                                                    onClick={() => handleSaveEdit(msg.id)}
-                                                    style={{ width: 'auto', padding: '0.4rem 0.8rem', backgroundColor: '#16a34a', color: 'white' }}
-                                                >
-                                                    Save
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => startEditing(msg)}
-                                                    style={{ width: 'auto', padding: '0.4rem 0.8rem', backgroundColor: '#64748b', color: 'white' }}
-                                                >
-                                                    Edit
-                                                </button>
-                                            )}
+    // Mock data for charts
+    const chartData = [
+        { name: 'Mon', tickets: 12 },
+        { name: 'Tue', tickets: 19 },
+        { name: 'Wed', tickets: 15 },
+        { name: 'Thu', tickets: 22 },
+        { name: 'Fri', tickets: 30 },
+        { name: 'Sat', tickets: 10 },
+        { name: 'Sun', tickets: 8 },
+    ];
 
-                                            <select
-                                                value={msg.status}
-                                                onChange={(e) => handleUpdateStatus(msg.id, e.target.value)}
-                                                style={{ width: 'auto', padding: '0.4rem' }}
-                                            >
-                                                <option value="pending">Pending</option>
-                                                <option value="edited">Edited</option>
-                                                <option value="replied">Replied</option>
-                                            </select>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )
-                }
-            </div >
-        </div >
+    const chartSeries = [{ key: 'tickets', name: 'Tickets Received' }];
+
+    const pendingCount = messages.filter(m => m.status === 'pending').length;
+    const resolvedCount = messages.filter(m => m.status === 'replied' || m.status === 'edited').length;
+
+    return (
+        <div className="space-y-8">
+            <div className="space-y-2">
+                <h1 className="text-3xl font-bold text-primary">
+                    Admin <span className="text-highlight-teal">Overview</span>
+                </h1>
+                <p className="text-neutral-500">Manage user messages and system status.</p>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard
+                    title="Total Tickets"
+                    value={messages.length}
+                    icon={Users}
+                    moduleColor="crm" // Blue
+                    trend="up"
+                    trendValue="8%"
+                />
+                <StatCard
+                    title="Pending Action"
+                    value={pendingCount}
+                    icon={AlertCircle}
+                    moduleColor="inventory" // Orange
+                />
+                <StatCard
+                    title="Resolved"
+                    value={resolvedCount}
+                    icon={CheckCircle}
+                    moduleColor="finance" // Green/Purple
+                    trend="up"
+                    trendValue="15%"
+                />
+            </div>
+
+            <BarChartComponent
+                title="Weekly Ticket Volume"
+                data={chartData}
+                dataKey="name"
+                series={chartSeries}
+                moduleName="finance"
+            />
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>All User Messages</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {loading ? (
+                        <p className="text-center py-8 text-neutral-500">Loading messages...</p>
+                    ) : messages.length === 0 ? (
+                        <p className="text-center py-8 text-neutral-500">No messages found.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-neutral-500 uppercase bg-neutral-50 border-b border-neutral-200">
+                                    <tr>
+                                        <th className="px-6 py-3 font-medium">User</th>
+                                        <th className="px-6 py-3 font-medium">Content</th>
+                                        <th className="px-6 py-3 font-medium">Status</th>
+                                        <th className="px-6 py-3 font-medium">Time</th>
+                                        <th className="px-6 py-3 font-medium">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-100">
+                                    {messages.map((msg) => (
+                                        <tr key={msg.id} className="bg-white hover:bg-primary/5 transition-colors">
+                                            <td className="px-6 py-4 font-medium text-neutral-900">{msg.sender_name}</td>
+                                            <td className="px-6 py-4">
+                                                {editingId === msg.id ? (
+                                                    <textarea
+                                                        className="w-full rounded-md border-neutral-300 text-sm focus:ring-primary"
+                                                        value={editContent}
+                                                        onChange={(e) => setEditContent(e.target.value)}
+                                                        rows={2}
+                                                    />
+                                                ) : (
+                                                    <span className="text-neutral-600">{msg.content}</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <Badge variant={
+                                                    msg.status === 'replied' ? 'success' :
+                                                        msg.status === 'active' ? 'default' :
+                                                            msg.status === 'edited' ? 'success' : 'warning'
+                                                }>
+                                                    {msg.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-6 py-4 text-neutral-500">
+                                                {new Date(msg.created_at).toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 space-x-2">
+                                                <div className="flex items-center gap-2">
+                                                    {editingId === msg.id ? (
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleSaveEdit(msg.id)}
+                                                            className="h-8 bg-green-600 hover:bg-green-700 text-white"
+                                                        >
+                                                            <Save className="h-3 w-3 mr-1" /> Save
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="sm"
+                                                            onClick={() => startEditing(msg)}
+                                                            className="h-8"
+                                                        >
+                                                            <Edit2 className="h-3 w-3 mr-1" /> Edit
+                                                        </Button>
+                                                    )}
+
+                                                    <select
+                                                        className="h-8 rounded-md border-neutral-200 bg-white text-xs text-neutral-600 focus:border-primary focus:ring-primary"
+                                                        value={msg.status}
+                                                        onChange={(e) => handleUpdateStatus(msg.id, e.target.value)}
+                                                    >
+                                                        <option value="pending">Pending</option>
+                                                        <option value="edited">Edited</option>
+                                                        <option value="replied">Replied</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
     );
 };
 

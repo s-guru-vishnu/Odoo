@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
+import { DashboardLayout } from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import LandingPage from './pages/LandingPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();
@@ -21,37 +22,38 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return children;
 };
 
+
 function App() {
     return (
         <Router>
             <AuthProvider>
-                <div className="app">
-                    <Navbar />
-                    <Routes>
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
+                <Routes>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-                        <Route
-                            path="/user/dashboard"
-                            element={
-                                <ProtectedRoute allowedRoles={['user']}>
+                    <Route
+                        path="/user/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={['user']}>
+                                <DashboardLayout>
                                     <UserDashboard />
-                                </ProtectedRoute>
-                            }
-                        />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                        <Route
-                            path="/admin/dashboard"
-                            element={
-                                <ProtectedRoute allowedRoles={['admin']}>
+                    <Route
+                        path="/admin/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <DashboardLayout>
                                     <AdminDashboard />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route path="/" element={<Navigate to="/login" />} />
-                    </Routes>
-                </div>
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
             </AuthProvider>
         </Router>
     );
