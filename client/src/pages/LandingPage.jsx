@@ -11,10 +11,28 @@ import { Typewriter } from '../components/ui/Typewriter';
 import Navbar from '../components/Navbar';
 
 const LandingPage = () => {
+    const [stats, setStats] = useState({ courses: 0, students: 0, enrollments: 0 });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch('/api/public/stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    setStats(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch stats:', error);
+            }
+        };
+        fetchStats();
+    }, []);
 
     // Single color theme - Primary Plum
     const featureIconBg = "bg-primary/10";
     const featureIconColor = "text-primary";
+
+    // ... rest of the component up to the stats section ...
 
     const courses = [
         {
@@ -92,11 +110,11 @@ const LandingPage = () => {
                                 {/* Stats */}
                                 <div className="flex items-center gap-8">
                                     <div className="text-center">
-                                        <span className="text-3xl font-bold text-neutral-800">50+</span>
+                                        <span className="text-3xl font-bold text-neutral-800">{stats.courses}+</span>
                                         <p className="text-sm text-neutral-400">Career Courses</p>
                                     </div>
                                     <div className="text-center">
-                                        <span className="text-3xl font-bold text-neutral-800">1M+</span>
+                                        <span className="text-3xl font-bold text-neutral-800">{stats.students >= 1000 ? `${(stats.students / 1000).toFixed(0)}k+` : stats.students}</span>
                                         <p className="text-sm text-neutral-400">Our Students</p>
                                     </div>
                                 </div>
@@ -138,7 +156,7 @@ const LandingPage = () => {
                                         <TrendingUp className="w-5 h-5 text-primary" />
                                     </div>
                                     <div>
-                                        <p className="text-xl font-bold text-neutral-800">175K</p>
+                                        <p className="text-xl font-bold text-neutral-800">{stats.enrollments >= 1000 ? `${(stats.enrollments / 1000).toFixed(1)}K` : stats.enrollments}</p>
                                         <p className="text-xs text-neutral-400">Assisted Students</p>
                                     </div>
                                 </div>
@@ -295,10 +313,10 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                         <div className="col-span-1 md:col-span-2">
-                            <div className="flex items-center gap-2 mb-4">
+                            <Link to="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
                                 <Logo className="h-10 w-10 text-white" />
                                 <span className="text-2xl font-bold">LearnSphere</span>
-                            </div>
+                            </Link>
                             <p className="text-neutral-400 max-w-sm">
                                 Empowering learners worldwide with quality education and career-focused courses.
                             </p>

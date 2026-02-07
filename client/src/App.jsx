@@ -23,6 +23,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
 import CommunityPage from './pages/CommunityPage';
+import ChatBot from './components/ui/ChatBot';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();
@@ -169,6 +170,7 @@ function App() {
                         }
                     />
                 </Routes>
+                <ChatBot />
             </AuthProvider>
         </Router>
     );

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Topbar } from '../components/layout/Topbar';
-import ChatBot from '../components/ui/ChatBot';
 
 const DashboardLayout = ({ children }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,8 +19,6 @@ const DashboardLayout = ({ children }) => {
                     <div className="max-w-7xl mx-auto space-y-6">
                         {children}
                     </div>
-                    {/* Integrated AI Assistant */}
-                    <ChatBot />
                 </main>
             </div>
         </div>

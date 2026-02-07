@@ -22,8 +22,9 @@ const getCategories = async (req, res) => {
 const getCourses = async (req, res) => {
     try {
         const db = getDb();
-        const { category, search } = req.query;
+        const { category, search, type, minPrice, maxPrice, rating: minRating, duration, sortBy } = req.query;
 
+        // Base query with subqueries for stats
         let query = `
             SELECT 
                 c.id, 
@@ -35,7 +36,8 @@ const getCourses = async (req, res) => {
                 u.full_name as instructor,
                 (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) as students,
                 (SELECT COALESCE(AVG(rating), 0) FROM reviews r WHERE r.course_id = c.id) as rating,
-                (SELECT json_agg(tag) FROM course_tags ct WHERE ct.course_id = c.id) as tags
+                (SELECT json_agg(tag) FROM course_tags ct WHERE ct.course_id = c.id) as tags,
+                (SELECT COALESCE(SUM(duration), 0) FROM lessons l WHERE l.course_id = c.id) as total_duration
             FROM courses c 
             LEFT JOIN users u ON c.course_admin = u.id 
             WHERE c.published = true
@@ -50,30 +52,83 @@ const getCourses = async (req, res) => {
             paramCount++;
         }
 
-        // If filtering by category (tag)
         if (category && category !== 'All') {
             query += ` AND EXISTS (SELECT 1 FROM course_tags ct WHERE ct.course_id = c.id AND ct.tag = $${paramCount})`;
             params.push(category);
             paramCount++;
         }
 
-        query += ` ORDER BY c.created_at DESC`;
+        if (type === 'free') {
+            query += ` AND c.price = 0`;
+        } else if (type === 'paid') {
+            query += ` AND c.price > 0`;
+        }
+
+        if (minPrice) {
+            query += ` AND c.price >= $${paramCount}`;
+            params.push(minPrice);
+            paramCount++;
+        }
+        if (maxPrice) {
+            query += ` AND c.price <= $${paramCount}`;
+            params.push(maxPrice);
+            paramCount++;
+        }
+
+        if (minRating) {
+            query += ` AND (SELECT COALESCE(AVG(rating), 0) FROM reviews r WHERE r.course_id = c.id) >= $${paramCount}`;
+            params.push(minRating);
+            paramCount++;
+        }
+
+        if (duration === 'short') {
+            query += ` AND (SELECT COALESCE(SUM(duration), 0) FROM lessons l WHERE l.course_id = c.id) < 120`;
+        } else if (duration === 'medium') {
+            query += ` AND (SELECT COALESCE(SUM(duration), 0) FROM lessons l WHERE l.course_id = c.id) BETWEEN 120 AND 600`;
+        } else if (duration === 'long') {
+            query += ` AND (SELECT COALESCE(SUM(duration), 0) FROM lessons l WHERE l.course_id = c.id) > 600`;
+        }
+
+        // Add Sorting
+        switch (sortBy) {
+            case 'price-low':
+                query += ` ORDER BY c.price ASC`;
+                break;
+            case 'price-high':
+                query += ` ORDER BY c.price DESC`;
+                break;
+            case 'rating':
+                query += ` ORDER BY rating DESC`;
+                break;
+            case 'popular':
+                query += ` ORDER BY students DESC`;
+                break;
+            case 'newest':
+            default:
+                query += ` ORDER BY c.created_at DESC`;
+        }
 
         const result = await db.query(query, params);
 
-        // Transform data to match frontend expectations
-        const courses = result.rows.map(course => ({
-            id: course.id,
-            title: course.title,
-            instructor: course.instructor || 'Unknown Instructor',
-            image: course.image_url, // Can be null
-            category: course.tags && course.tags.length > 0 ? course.tags[0] : 'General',
-            rating: parseFloat(parseFloat(course.rating).toFixed(1)),
-            students: parseInt(course.students),
-            duration: "10 hours", // Placeholder as it's not in DB easily without summing lessons
-            price: parseFloat(course.price),
-            tags: course.tags || []
-        }));
+        const courses = result.rows.map(course => {
+            const totalMins = parseInt(course.total_duration) || 0;
+            const hours = Math.floor(totalMins / 60);
+            const mins = totalMins % 60;
+            const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+            return {
+                id: course.id,
+                title: course.title,
+                instructor: course.instructor || 'Unknown Instructor',
+                image: course.image_url,
+                category: course.tags && course.tags.length > 0 ? course.tags[0] : 'General',
+                rating: parseFloat(parseFloat(course.rating).toFixed(1)),
+                students: parseInt(course.students),
+                duration: durationStr,
+                price: parseFloat(course.price),
+                tags: course.tags || []
+            };
+        });
 
         res.json(courses);
     } catch (error) {
@@ -233,6 +288,34 @@ const postMessage = (req, res) => {
     res.status(201).json(newMessage);
 };
 
+const getStats = async (req, res) => {
+    try {
+        const db = getDb();
+
+        // Count published courses
+        const coursesCount = await db.query('SELECT COUNT(*) FROM courses WHERE published = true');
+
+        // Count total unique learners (users with learner role)
+        const learnersCount = await db.query(`
+            SELECT COUNT(*) FROM users u 
+            JOIN roles r ON u.role_id = r.id 
+            WHERE r.name = 'learner'
+        `);
+
+        // Count total enrollments
+        const enrollmentsCount = await db.query('SELECT COUNT(*) FROM enrollments');
+
+        res.json({
+            courses: parseInt(coursesCount.rows[0].count),
+            students: parseInt(learnersCount.rows[0].count),
+            enrollments: parseInt(enrollmentsCount.rows[0].count)
+        });
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ message: 'Failed to fetch statistics', error: error.message });
+    }
+};
+
 module.exports = {
     getCategories,
     getCourses,
@@ -241,5 +324,6 @@ module.exports = {
     getChannels,
     createChannel,
     getChannelMessages,
-    postMessage
+    postMessage,
+    getStats
 };

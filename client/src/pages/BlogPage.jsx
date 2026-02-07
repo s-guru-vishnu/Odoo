@@ -208,10 +208,10 @@ const BlogPage = () => {
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                         <div className="col-span-1 md:col-span-2">
-                            <div className="flex items-center gap-2 mb-4">
+                            <Link to="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
                                 <Logo className="h-10 w-10 text-white" />
                                 <span className="text-2xl font-bold">LearnSphere</span>
-                            </div>
+                            </Link>
                             <p className="text-neutral-400 max-w-sm">
                                 Empowering learners worldwide with quality education and career-focused courses.
                             </p>

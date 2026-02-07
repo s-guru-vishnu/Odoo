@@ -98,4 +98,3 @@ const Topbar = ({ onMenuClick }) => {
 };
 
 export { Topbar };
-

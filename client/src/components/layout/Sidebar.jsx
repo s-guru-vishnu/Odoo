@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Box, BarChart, Settings, Menu, X, LogOut, User, Archive, Video, BookOpen, FileText } from 'lucide-react';
+import { NavLink, Link } from 'react-router-dom';
+import { LayoutDashboard, Users, Box, BarChart3, Settings, Menu, X, LogOut, User, Archive, Video, BookOpen, FileText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
@@ -74,13 +74,13 @@ const Sidebar = ({ className, isOpen, onClose }) => {
                     className
                 )}
             >
-                <div className="flex h-16 items-center px-6 border-b border-neutral-200 gap-2">
+                <Link to="/" className="flex h-16 items-center px-6 border-b border-neutral-200 gap-2 hover:bg-neutral-100/50 transition-colors">
                     <Logo className="h-8 w-8" />
                     <span className="text-2xl font-bold text-primary tracking-tight">LearnSphere</span>
                     <button className="ml-auto lg:hidden" onClick={onClose}>
                         <X className="h-6 w-6 text-neutral-500" />
                     </button>
-                </div>
+                </Link>
 
                 <nav className="p-4 space-y-1">
                     {navItems.map((item) => (
