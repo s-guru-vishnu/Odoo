@@ -1,17 +1,23 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const authRoutes = require('./routes/authRoutes');
+const googleAuthRoutes = require('./routes/auth');
 const messageRoutes = require('./routes/messageRoutes');
 const { getDb } = require('./config/db');
+const passport = require('./config/passport');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
+
+// OAuth Routes
+app.use('/auth', googleAuthRoutes);
 
 // Basic health check (no DB dependency)
 app.get('/api/health-simple', (req, res) => {
@@ -70,6 +76,10 @@ app.use('/api/public', require('./routes/publicRoutes'));
 
 // Serve static assets from the React app
 const buildPath = path.join(__dirname, '../client/dist');
+console.log('Static Build Path:', buildPath);
+const fs = require('fs');
+console.log('Build Path Exists:', fs.existsSync(buildPath));
+
 app.use(express.static(buildPath));
 
 app.get('*', (req, res) => {

@@ -3,6 +3,7 @@ import { Sidebar } from '../components/layout/Sidebar';
 import { Topbar } from '../components/layout/Topbar';
 
 const DashboardLayout = ({ children }) => {
+    console.log('DashboardLayout: Rendering...');
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (

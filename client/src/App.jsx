@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardLayout } from './layouts/DashboardLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
@@ -23,6 +24,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
 import CommunityPage from './pages/CommunityPage';
+import AuthSuccess from './pages/AuthSuccess';
 import ChatBot from './components/ui/ChatBot';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -49,6 +51,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 
 function App() {
+    console.log('App: Rendering. Current Path:', window.location.pathname);
     return (
         <Router>
             <AuthProvider>
@@ -64,6 +67,13 @@ function App() {
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/community" element={<CommunityPage />} />
+                    <Route path="/auth-success" element={
+                        <ErrorBoundary>
+                            <React.Suspense fallback={<div>Loading...</div>}>
+                                <AuthSuccess />
+                            </React.Suspense>
+                        </ErrorBoundary>
+                    } />
 
                     <Route
                         path="/user/dashboard"
