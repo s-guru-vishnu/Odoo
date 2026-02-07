@@ -68,11 +68,19 @@ app.get('/debug-env', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
+
+// Merged Routes from valid branches
 app.use('/api/learner', require('./routes/learnerRoutes'));
 app.use('/api/ai', require('./routes/chatRoutes'));
 app.use('/api/live-classes', require('./routes/liveClassRoutes'));
 app.use('/api/assignments', require('./routes/assignmentRoutes'));
 app.use('/api/public', require('./routes/publicRoutes'));
+
+app.use('/api/courses', require('./routes/courseRoutes'));
+app.use('/api/lessons', require('./routes/lessonRoutes'));
+app.use('/api/quizzes', require('./routes/quizRoutes'));
+app.use('/api/user', require('./routes/userRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Serve static assets from the React app
 const buildPath = path.join(__dirname, '../client/dist');
@@ -92,7 +100,35 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!' });
 });
 
+// Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+
+const server = app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+    console.error(err.name, err.message);
+    server.close(() => {
+        process.exit(1);
+    });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+    console.error(err.name, err.message);
+    process.exit(1);
+});
+
+// Handle EADDRINUSE error
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Error: Port ${PORT} is already in use. Please close the other application or change the port.`);
+        process.exit(1);
+    } else {
+        console.error('Server error:', error);
+    }
 });

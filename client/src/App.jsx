@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // v2 force refresh
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardLayout } from './layouts/DashboardLayout';
@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
 import LandingPage from './pages/LandingPage';
 import CoursesPage from './pages/CoursesPage';
 import BlogPage from './pages/BlogPage';
@@ -26,6 +27,11 @@ import Contact from './pages/Contact';
 import CommunityPage from './pages/CommunityPage';
 import AuthSuccess from './pages/AuthSuccess';
 import ChatBot from './components/ui/ChatBot';
+import CoursesDashboard from './pages/instructor/Dashboard';
+import CourseForm from './pages/instructor/CourseForm';
+import Settings from './pages/Settings';
+import QuizBuilder from './pages/instructor/QuizBuilder';
+import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();

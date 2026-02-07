@@ -71,6 +71,185 @@ module.exports = {
         }
     },
 
+    createQuiz: async (req, res) => {
+        const { title, course_id } = req.body;
+        try {
+            const db = getDb();
+            const result = await db.query(
+                `INSERT INTO quizzes (title, course_id) VALUES ($1, $2) RETURNING *`,
+                [title, course_id]
+            );
+
+            // Initialize default rewards
+            await db.query(
+                `INSERT INTO quiz_rewards (quiz_id, first_try, second_try, third_try, fourth_plus) VALUES ($1, 10, 7, 5, 2)`,
+                [result.rows[0].id]
+            );
+
+            res.status(201).json(result.rows[0]);
+        } catch (error) {
+            console.error('CREATE QUIZ ERROR:', error);
+            res.status(500).json({ message: 'Error creating quiz' });
+        }
+    },
+
+    updateQuiz: async (req, res) => {
+        const { quizId } = req.params;
+        const { title } = req.body;
+        try {
+            const db = getDb();
+            const result = await db.query(
+                `UPDATE quizzes SET title = $1 WHERE id = $2 RETURNING *`,
+                [title, quizId]
+            );
+            if (result.rows.length === 0) return res.status(404).json({ message: 'Quiz not found' });
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error('UPDATE QUIZ ERROR:', error);
+            res.status(500).json({ message: 'Error updating quiz' });
+        }
+    },
+
+    deleteQuiz: async (req, res) => {
+        const { quizId } = req.params;
+        try {
+            const db = getDb();
+            // Cascading delete should handle relations, but let's be safe if no cascade
+            await db.query('DELETE FROM quiz_options WHERE question_id IN (SELECT id FROM quiz_questions WHERE quiz_id = $1)', [quizId]);
+            await db.query('DELETE FROM quiz_questions WHERE quiz_id = $1', [quizId]);
+            await db.query('DELETE FROM quiz_rewards WHERE quiz_id = $1', [quizId]);
+            await db.query('DELETE FROM quizzes WHERE id = $1', [quizId]);
+            res.json({ message: 'Quiz deleted' });
+        } catch (error) {
+            console.error('DELETE QUIZ ERROR:', error);
+            res.status(500).json({ message: 'Error deleting quiz' });
+        }
+    },
+
+    addQuestion: async (req, res) => {
+        const { quizId } = req.params;
+        const { question, options } = req.body; // options is array of { text, is_correct }
+
+        try {
+            const db = getDb();
+            // 1. Insert Question
+            const qResult = await db.query(
+                `INSERT INTO quiz_questions (quiz_id, question) VALUES ($1, $2) RETURNING *`,
+                [quizId, question]
+            );
+            const newQuestion = qResult.rows[0];
+
+            // 2. Insert Options
+            if (options && options.length > 0) {
+                for (let opt of options) {
+                    await db.query(
+                        `INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)`,
+                        [newQuestion.id, opt.option_text, opt.is_correct]
+                    );
+                }
+            }
+
+            // Return full question with options
+            const optionsRes = await db.query('SELECT * FROM quiz_options WHERE question_id = $1', [newQuestion.id]);
+            newQuestion.options = optionsRes.rows;
+
+            res.status(201).json(newQuestion);
+        } catch (error) {
+            console.error('ADD QUESTION ERROR:', error);
+            res.status(500).json({ message: 'Error adding question' });
+        }
+    },
+
+    updateQuestion: async (req, res) => {
+        const { questionId } = req.params;
+        const { question, options } = req.body;
+
+        try {
+            const db = getDb();
+            // 1. Update Question Text
+            await db.query(`UPDATE quiz_questions SET question = $1 WHERE id = $2`, [question, questionId]);
+
+            // 2. Update Options (Full replace strategy for simplicity)
+            await db.query(`DELETE FROM quiz_options WHERE question_id = $1`, [questionId]);
+
+            if (options && options.length > 0) {
+                for (let opt of options) {
+                    await db.query(
+                        `INSERT INTO quiz_options (question_id, option_text, is_correct) VALUES ($1, $2, $3)`,
+                        [questionId, opt.option_text, opt.is_correct]
+                    );
+                }
+            }
+
+            // Return updated
+            const qRes = await db.query('SELECT * FROM quiz_questions WHERE id = $1', [questionId]);
+            const optionsRes = await db.query('SELECT * FROM quiz_options WHERE question_id = $1', [questionId]);
+            const updatedQuestion = qRes.rows[0];
+            updatedQuestion.options = optionsRes.rows;
+
+            res.json(updatedQuestion);
+
+        } catch (error) {
+            console.error('UPDATE QUESTION ERROR:', error);
+            res.status(500).json({ message: 'Error updating question' });
+        }
+    },
+
+    deleteQuestion: async (req, res) => {
+        const { questionId } = req.params;
+        try {
+            const db = getDb();
+            await db.query('DELETE FROM quiz_options WHERE question_id = $1', [questionId]);
+            await db.query('DELETE FROM quiz_questions WHERE id = $1', [questionId]);
+            res.json({ message: 'Question deleted' });
+        } catch (error) {
+            console.error('DELETE QUESTION ERROR:', error);
+            res.status(500).json({ message: 'Error deleting question' });
+        }
+    },
+
+    getRewards: async (req, res) => {
+        const { quizId } = req.params;
+        try {
+            const db = getDb();
+            const result = await db.query('SELECT * FROM quiz_rewards WHERE quiz_id = $1', [quizId]);
+            if (result.rows.length === 0) {
+                // Return defaults if not found
+                return res.json({ first_try: 10, second_try: 7, third_try: 5, fourth_plus: 2 });
+            }
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error('GET REWARDS ERROR:', error);
+            res.status(500).json({ message: 'Error fetching rewards' });
+        }
+    },
+
+    updateRewards: async (req, res) => {
+        const { quizId } = req.params;
+        const { first_try, second_try, third_try, fourth_plus } = req.body;
+        try {
+            const db = getDb();
+            // Upsert logic
+            const check = await db.query('SELECT 1 FROM quiz_rewards WHERE quiz_id = $1', [quizId]);
+            let result;
+            if (check.rows.length > 0) {
+                result = await db.query(
+                    `UPDATE quiz_rewards SET first_try=$1, second_try=$2, third_try=$3, fourth_plus=$4 WHERE quiz_id=$5 RETURNING *`,
+                    [first_try, second_try, third_try, fourth_plus, quizId]
+                );
+            } else {
+                result = await db.query(
+                    `INSERT INTO quiz_rewards (quiz_id, first_try, second_try, third_try, fourth_plus) VALUES ($5, $1, $2, $3, $4) RETURNING *`,
+                    [first_try, second_try, third_try, fourth_plus, quizId]
+                );
+            }
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error('UPDATE REWARDS ERROR:', error);
+            res.status(500).json({ message: 'Error updating rewards' });
+        }
+    },
+
     submitAttempt: async (req, res) => {
         const { quizId } = req.params;
         const { answers } = req.body; // e.g., { questionId: optionId, ... }

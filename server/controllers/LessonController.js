@@ -84,6 +84,77 @@ module.exports = {
         }
     },
 
-    updateLesson: (req, res) => { /* Update lesson logic */ },
-    deleteLesson: (req, res) => { /* Delete lesson logic */ },
+    updateLesson: async (req, res) => {
+        const { id } = req.params;
+        const { title, type, content_url, duration, lesson_order } = req.body;
+
+        try {
+            const db = getDb();
+            const result = await db.query(
+                `UPDATE lessons
+                 SET title = COALESCE($1, title),
+                     type = COALESCE($2, type),
+                     content_url = COALESCE($3, content_url),
+                     duration = COALESCE($4, duration),
+                     lesson_order = COALESCE($5, lesson_order)
+                 WHERE id = $6
+                 RETURNING *`,
+                [title, type, content_url, duration, lesson_order, id]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ message: 'Lesson not found' });
+            }
+
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error('UPDATE LESSON ERROR:', error);
+            res.status(500).json({ message: 'Error updating lesson' });
+        }
+    },
+
+    deleteLesson: async (req, res) => {
+        const { id } = req.params;
+        try {
+            const db = getDb();
+            const result = await db.query('DELETE FROM lessons WHERE id = $1 RETURNING id', [id]);
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ message: 'Lesson not found' });
+            }
+
+            res.json({ message: 'Lesson deleted successfully' });
+        } catch (error) {
+            console.error('DELETE LESSON ERROR:', error);
+            res.status(500).json({ message: 'Error deleting lesson' });
+        }
+    },
+
+    reorderLessons: async (req, res) => {
+        const { lessons } = req.body; // Expects [{ id, lesson_order }, ...]
+
+        if (!Array.isArray(lessons)) {
+            return res.status(400).json({ message: 'Invalid data format' });
+        }
+
+        try {
+            const db = getDb();
+            // Use a transaction for safety
+            await db.query('BEGIN');
+
+            for (const lesson of lessons) {
+                await db.query(
+                    'UPDATE lessons SET lesson_order = $1 WHERE id = $2',
+                    [lesson.lesson_order, lesson.id]
+                );
+            }
+
+            await db.query('COMMIT');
+            res.json({ message: 'Lessons reordered successfully' });
+        } catch (error) {
+            await getDb().query('ROLLBACK');
+            console.error('REORDER LESSONS ERROR:', error);
+            res.status(500).json({ message: 'Error reordering lessons' });
+        }
+    },
 };
