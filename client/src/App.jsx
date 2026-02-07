@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import LandingPage from './pages/LandingPage';
+import CoursesPage from './pages/CoursesPage';
+import BlogPage from './pages/BlogPage';
 import LessonPlayer from './pages/learner/LessonPlayer';
 import CourseOverview from './pages/learner/CourseOverview';
 import UserProfile from './pages/learner/UserProfile';
@@ -15,6 +17,12 @@ import LiveClassRoom from './pages/learner/LiveClassRoom';
 import Quizzes from './pages/learner/Quizzes';
 import WorkSubmission from './pages/learner/WorkSubmission';
 import ExploreCourses from './pages/learner/ExploreCourses';
+import FAQ from './pages/FAQ';
+import HelpCenter from './pages/HelpCenter';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Contact from './pages/Contact';
+import CommunityPage from './pages/CommunityPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useAuth();
@@ -45,8 +53,16 @@ function App() {
             <AuthProvider>
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
+                    <Route path="/courses" element={<CoursesPage />} />
+                    <Route path="/blog" element={<BlogPage />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/community" element={<CommunityPage />} />
 
                     <Route
                         path="/user/dashboard"
