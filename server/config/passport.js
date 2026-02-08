@@ -3,10 +3,16 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { getDb } = require('./db');
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    const callbackURL = (process.env.NODE_ENV === 'production')
+        ? "https://odoo-app-elearning.up.railway.app/auth/google/callback"
+        : "/auth/google/callback";
+
+    console.log('Google OAuth Callback URL:', callbackURL);
+
     passport.use(new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/auth/google/callback",
+        callbackURL: callbackURL,
         proxy: true // Required for Railway/HTTPS
     },
         async (accessToken, refreshToken, profile, done) => {

@@ -10,6 +10,7 @@ const { getDb } = require('./config/db');
 const passport = require('./config/passport');
 
 const app = express();
+app.enable('trust proxy'); // Required for Railway/Heroku/Vercel (behind proxy)
 
 // Middleware
 app.use(cors());
