@@ -80,6 +80,11 @@ app.use('/api/lessons', require('./routes/lessonRoutes'));
 app.use('/api/quizzes', require('./routes/quizRoutes'));
 app.use('/api/user', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/certificates', require('./routes/certificateRoutes'));
+
+// Initialize Certificate Table (Self-healing)
+const CertificateModel = require('./models/certificateModel');
+CertificateModel.createCertificateTable();
 
 // Serve static assets from the React app
 const buildPath = path.join(__dirname, '../client/dist');

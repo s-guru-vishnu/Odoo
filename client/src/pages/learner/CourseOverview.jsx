@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CirclePlay as PlayCircle, FileText, CircleCheck as CheckCircle, Clock, Star, MessageSquare } from 'lucide-react';
+import { CirclePlay as PlayCircle, FileText, CircleCheck as CheckCircle, Clock, Star, MessageSquare, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -322,13 +322,39 @@ const CourseOverview = () => {
                                     Continue Learning
                                 </Button>
                             ) : (
-                                <Button variant="outline" className="w-full">Download Certificate</Button>
+                        <Button
+                            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-md"
+                            onClick={async () => {
+                                try {
+                                    const token = localStorage.getItem('token');
+                                    const res = await fetch('/api/certificates/generate', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({ courseId: id })
+                                    });
+
+                                    if (res.ok) {
+                                        const data = await res.json();
+                                        window.open(data.pdf_url, '_blank');
+                                    } else {
+                                        alert('Error generating certificate');
+                                    }
+                                } catch (err) {
+                                    console.error('Cert Error:', err);
+                                }
+                            }}
+                        >
+                            Download Certificate <Trophy className="ml-2 h-4 w-4" />
+                        </Button>
                             )}
-                        </CardContent>
-                    </Card>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
+        </div >
     );
 };
 
