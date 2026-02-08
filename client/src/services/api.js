@@ -119,6 +119,14 @@ export const userAPI = {
             headers: getHeaders()
         });
         return handleResponse(res);
+    },
+    update: async (id, data) => {
+        const res = await fetch(`${API_URL}/user/${id}`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        return handleResponse(res);
     }
 };
 

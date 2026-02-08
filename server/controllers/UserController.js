@@ -158,5 +158,41 @@ module.exports = {
             console.error('DELETE USER ERROR:', error);
             res.status(500).json({ message: 'Error deleting user' });
         }
+    },
+
+    updateUser: async (req, res) => {
+        try {
+            if (req.user.role?.toLowerCase() !== 'admin') {
+                return res.status(403).json({ message: 'Forbidden: Admin access required' });
+            }
+            const db = getDb();
+            const userId = req.params.id;
+            const { full_name, role_id } = req.body;
+
+            const result = await db.query(
+                `UPDATE users 
+                 SET full_name = $1, role_id = $2 
+                 WHERE id = $3 
+                 RETURNING id, full_name, email, role_id`,
+                [full_name, role_id, userId]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Get role name for the updated user
+            const final = await db.query(`
+                SELECT u.id, u.full_name, u.email, u.role_id, r.name as role_name 
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                WHERE u.id = $1
+            `, [userId]);
+
+            res.json(final.rows[0]);
+        } catch (error) {
+            console.error('UPDATE USER ERROR:', error);
+            res.status(500).json({ message: 'Error updating user' });
+        }
     }
 };
