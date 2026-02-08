@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, LayoutGrid, List as ListIcon, Plus, Eye, BookOpen, Clock, Share2, Edit2, MoreVertical, Trash2 } from 'lucide-react';
+import { Search, LayoutGrid, List as ListIcon, Plus, Eye, BookOpen, Clock, Share2, Edit2, MoreVertical, Trash2, Users, Star } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -156,8 +156,12 @@ const CoursesDashboard = () => {
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-2 gap-4 my-6">
                                     <div className="flex items-center gap-2 text-sm text-neutral-600">
-                                        <Eye className="h-4 w-4 text-accent-mustard" />
-                                        <span><span className="font-semibold text-neutral-900">12</span> Views</span>
+                                        <Users className="h-4 w-4 text-primary" />
+                                        <span><span className="font-semibold text-neutral-900">{course.student_count || 0}</span> Students</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-neutral-600">
+                                        <Star className="h-4 w-4 text-amber-500 fill-current" />
+                                        <span><span className="font-semibold text-neutral-900">{parseFloat(course.average_rating || 0).toFixed(1)}</span> Rating</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-neutral-600">
                                         <BookOpen className="h-4 w-4 text-accent-sky" />

@@ -218,7 +218,7 @@ const AdminDashboard = () => {
                                             {visibleColumns.courseName && (
                                                 <td className="px-6 py-4 font-medium text-blue-600">
                                                     <a
-                                                        href={`/instructor/course/${row.course_id}/edit`}
+                                                        href={`/admin/course/${row.course_id}/edit`}
                                                         className="hover:underline cursor-pointer text-blue-700 font-bold"
                                                     >
                                                         {row.course_name}

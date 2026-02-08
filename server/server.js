@@ -53,16 +53,15 @@ app.get('/api/health', async (req, res) => {
     });
 });
 
-// Debug environment (remove in production)
-app.get('/debug-env', (req, res) => {
-    res.json({
-        DATABASE_URL: process.env.DATABASE_URL ? 'exists' : 'missing',
-        DATABASE_PUBLIC_URL: process.env.DATABASE_PUBLIC_URL ? 'exists' : 'missing',
-        PGHOST: process.env.PGHOST ? 'exists' : 'missing',
-        NODE_ENV: process.env.NODE_ENV,
-        PORT: process.env.PORT,
-        HAS_SECRET: process.env.JWT_SECRET ? 'exists' : 'missing'
-    });
+app.get('/debug-dist', (req, res) => {
+    const fs = require('fs');
+    try {
+        const files = fs.readdirSync(buildPath);
+        const assets = fs.existsSync(path.join(buildPath, 'assets')) ? fs.readdirSync(path.join(buildPath, 'assets')) : 'missing';
+        res.json({ buildPath, exists: fs.existsSync(buildPath), files, assets });
+    } catch (err) {
+        res.status(500).json({ error: err.message, buildPath });
+    }
 });
 
 // Routes

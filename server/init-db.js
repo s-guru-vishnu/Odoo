@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { getDb } = require('./config/db');
 require('dotenv').config();
 const fs = require('fs');

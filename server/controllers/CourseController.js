@@ -115,11 +115,13 @@ module.exports = {
         try {
             const db = getDb();
             // Fetch all courses created by this user, order by newest first
-            // Include lesson count and total duration
+            // Include lesson count, total duration, student count, and average rating
             const result = await db.query(`
                 SELECT c.*, 
-                       COUNT(l.id) as lesson_count, 
-                       COALESCE(SUM(l.duration), 0) as total_duration
+                       COUNT(DISTINCT l.id) as lesson_count, 
+                       COALESCE(SUM(l.duration), 0) as total_duration,
+                       (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) as student_count,
+                       (SELECT COALESCE(AVG(rating), 0) FROM reviews r WHERE r.course_id = c.id) as average_rating
                 FROM courses c
                 LEFT JOIN lessons l ON c.id = l.course_id
                 WHERE c.course_admin = $1

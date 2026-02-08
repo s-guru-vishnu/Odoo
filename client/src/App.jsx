@@ -34,7 +34,11 @@ import QuizBuilder from './pages/instructor/QuizBuilder';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center bg-white text-primary">Loading...</div>;
+    }
 
     if (!user) {
         return <Navigate to="/login" />;

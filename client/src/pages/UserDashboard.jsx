@@ -14,7 +14,6 @@ const UserDashboard = () => {
     const navigate = useNavigate();
     const role = (user?.role || '').toString().trim().toUpperCase();
     const isInstructor = role === 'INSTRUCTOR' || role === 'MENTOR' || role === 'TEACHER';
-    const isAdmin = role === 'ADMIN';
     const [courses, setCourses] = useState([]);
     const [quizzes, setQuizzes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,7 +24,8 @@ const UserDashboard = () => {
                 const token = localStorage.getItem('token');
 
                 // Fetch Courses
-                const coursesRes = await fetch('/api/learner/my-courses', {
+                const coursesUrl = isInstructor ? '/api/courses/instructor' : '/api/learner/my-courses';
+                const coursesRes = await fetch(coursesUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (coursesRes.ok) {
@@ -50,7 +50,7 @@ const UserDashboard = () => {
         };
 
         fetchDashboardData();
-    }, []);
+    }, [isInstructor]);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -87,8 +87,8 @@ const UserDashboard = () => {
                         <span className="text-white font-bold italic">Live</span> learning sessions and master new domains.
                     </p>
                     <div className="flex flex-wrap gap-4 pt-4">
-                        <Button onClick={() => navigate('/courses/explore')} className="rounded-full h-14 px-8 bg-white text-primary hover:bg-neutral-100 border-none font-bold text-lg shadow-lg transition-transform hover:scale-105 active:scale-95">
-                            {isInstructor ? 'Manage Courses' : 'Explore Courses'}
+                        <Button onClick={() => navigate(isInstructor ? '/instructor/dashboard' : '/courses/explore')} className="rounded-full h-14 px-8 bg-white text-primary hover:bg-neutral-100 border-none font-bold text-lg shadow-lg transition-transform hover:scale-105 active:scale-95">
+                            {isInstructor ? 'Course Manager' : 'Explore Courses'}
                         </Button>
                         <Button onClick={() => navigate('/live-classes')} variant="outline" className="rounded-full h-14 px-8 border-white/30 bg-transparent text-white hover:bg-white/10 font-bold text-lg backdrop-blur-sm transition-transform hover:scale-105 active:scale-95">
                             <span className="text-white">Experience Live Learning</span>
@@ -103,19 +103,19 @@ const UserDashboard = () => {
                     <>
                         <StatCard
                             title="Total Students"
-                            value="0"
+                            value={courses.reduce((acc, c) => acc + (parseInt(c.student_count) || 0), 0).toString()}
                             icon={Users}
                             moduleColor="crm"
                         />
                         <StatCard
                             title="Active Courses"
-                            value="0"
+                            value={courses.filter(c => c.published).length.toString()}
                             icon={BookOpen}
                             moduleColor="finance"
                         />
                         <StatCard
                             title="Average Rating"
-                            value="0.0"
+                            value={(courses.length > 0 ? (courses.reduce((acc, c) => acc + (parseFloat(c.average_rating) || 0), 0) / courses.length) : 0).toFixed(1)}
                             icon={Star}
                             trend="up"
                             trendValue="+0"
@@ -147,55 +147,105 @@ const UserDashboard = () => {
                 )}
             </div>
 
+            {/* Courses Section */}
+            <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-neutral-800">{isInstructor ? 'Instructor Portfolio' : 'My Courses'}</h2>
 
-
-            {/* Certificates Section */}
-            {!isInstructor && courses.some(c => c.status === 'COMPLETED') && (
-                <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-neutral-800">My Certificates</h2>
+                {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {courses.filter(c => c.status === 'COMPLETED').map((course) => (
+                        {[1, 2, 3].map(i => (
+                            <Card key={i} className="h-64 animate-pulse bg-neutral-100 border-none rounded-3xl" />
+                        ))}
+                    </div>
+                ) : courses.length === 0 ? (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-neutral-200">
+                        <div className="h-16 w-16 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <BookOpen className="h-8 w-8 text-neutral-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-neutral-900">{isInstructor ? 'No courses created' : 'No courses yet'}</h3>
+                        <p className="text-neutral-500 mb-6">{isInstructor ? 'Launch your first course to start teaching.' : 'Start your learning journey by enrolling in a course.'}</p>
+                        <Button onClick={() => navigate(isInstructor ? '/instructor/dashboard' : '/courses/explore')} className="rounded-2xl">
+                            {isInstructor ? 'Create Course' : 'Explore Courses'}
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {courses.map((course) => (
                             <Card key={course.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-neutral-200 rounded-3xl">
                                 <div className="h-40 bg-neutral-100 relative overflow-hidden">
                                     {course.image_url ? (
-                                        <img src={course.image_url} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        <img
+                                            src={course.image_url}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary"><BookOpen className="h-12 w-12 opacity-20" /></div>
+                                        <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary">
+                                            <BookOpen className="h-12 w-12 opacity-20" />
+                                        </div>
                                     )}
-                                    <div className="absolute top-3 right-3"><Badge className="bg-green-500 shadow-sm">Completed</Badge></div>
+                                    <div className="absolute top-3 right-3">
+                                        <Badge variant={isInstructor ? (course.published ? 'success' : 'secondary') : getStatusColor(course.status)} className="shadow-sm">
+                                            {isInstructor ? (course.published ? 'PUBLISHED' : 'DRAFT') : (course.status || 'YET_TO_START').replace(/_/g, ' ')}
+                                        </Badge>
+                                    </div>
                                 </div>
-                                <CardHeader className="pb-4">
-                                    <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{course.title}</CardTitle>
-                                    <Button
-                                        className="w-full mt-4 rounded-2xl bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-md"
-                                        onClick={async (e) => {
-                                            e.stopPropagation();
-                                            try {
-                                                const token = localStorage.getItem('token');
-                                                const res = await fetch('/api/certificates/generate', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                                    body: JSON.stringify({ courseId: course.id })
-                                                });
-                                                if (res.ok) {
-                                                    const data = await res.json();
-                                                    window.open(data.pdf_url, '_blank');
-                                                } else {
-                                                    alert('Error generating certificate');
-                                                }
-                                            } catch (err) {
-                                                console.error('Cert Error:', err);
-                                            }
-                                        }}
-                                    >
-                                        Download Certificate <Trophy className="ml-2 h-4 w-4" />
-                                    </Button>
+
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">
+                                        {course.title}
+                                    </CardTitle>
+                                    <div className="flex items-center justify-between text-sm text-neutral-500">
+                                        {isInstructor ? (
+                                            <div className="flex items-center gap-4">
+                                                <span className="flex items-center gap-1 font-medium text-amber-600">
+                                                    <Star className="h-3 w-3 fill-current" />
+                                                    {parseFloat(course.average_rating || 0).toFixed(1)}
+                                                </span>
+                                                <span className="flex items-center gap-1 font-medium text-primary">
+                                                    <Users className="h-3 w-3" />
+                                                    {course.student_count || 0} Students
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="flex items-center gap-1 font-medium">
+                                                <Clock className="h-3 w-3" />
+                                                {course.completion_percentage}% Complete
+                                            </span>
+                                        )}
+                                    </div>
                                 </CardHeader>
+
+                                <CardContent>
+                                    <div className="w-full h-2 bg-neutral-100 rounded-full mb-6 overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-1000 ${isInstructor ? (course.published ? 'bg-green-500' : 'bg-neutral-400') : (course.status === 'COMPLETED' ? 'bg-green-500' : 'bg-primary')
+                                                }`}
+                                            style={{ width: isInstructor ? '100%' : `${course.completion_percentage}%` }}
+                                        />
+                                    </div>
+
+                                    <Button
+                                        className="w-full rounded-2xl group-hover:gap-3 transition-all font-bold"
+                                        onClick={() => isInstructor ? navigate(`/instructor/course/${course.id}/edit`) : handleResume(course.id)}
+                                        variant={isInstructor ? "default" : (course.status === 'COMPLETED' ? "outline" : "default")}
+                                    >
+                                        {isInstructor ? (
+                                            <>Edit Course <ArrowRight className="ml-2 h-4 w-4" /></>
+                                        ) : (
+                                            course.status === 'COMPLETED' ? (
+                                                <>View Certificate <Trophy className="ml-2 h-4 w-4 text-yellow-500" /></>
+                                            ) : (
+                                                <>Resume Learning <PlayCircle className="ml-2 h-4 w-4" /></>
+                                            )
+                                        )}
+                                    </Button>
+                                </CardContent>
                             </Card>
                         ))}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Quizzes Section - Hidden for Instructors */}
             {!isInstructor && (
