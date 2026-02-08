@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Save, Eye, MoreVertical, Plus, Video, FileText, Image as ImageIcon, HelpCircle, X, ChevronDown, Trash2, Edit2, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
@@ -11,7 +11,9 @@ import { useAuth } from '../../context/AuthContext';
 const CourseForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
+    const isAdminMode = location.pathname.startsWith('/admin');
     const [instructors, setInstructors] = useState([]);
     const [activeTab, setActiveTab] = useState('content');
     const [loading, setLoading] = useState(true);
@@ -323,7 +325,7 @@ const CourseForm = () => {
 
             <div className="max-w-6xl mx-auto mt-8 px-6 space-y-6">
                 {/* Action Bar - Admin Only */}
-                {user?.role === 'admin' && (
+                {isAdminMode && (
                     <div className="flex gap-2">
                         <Button variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300 shadow-sm"
                             onClick={() => setActiveTab('attendees')}>
@@ -441,7 +443,7 @@ const CourseForm = () => {
                     {/* Tabs Header */}
                     <div className="flex border-b border-neutral-200 px-6">
                         {['Content', 'Description', 'Attendees', 'Options', 'Quiz']
-                            .filter(tab => tab !== 'Options' || user?.role === 'admin')
+                            .filter(tab => tab !== 'Options' || isAdminMode)
                             .map((tab) => (
                                 <button
                                     key={tab}

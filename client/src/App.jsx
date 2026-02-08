@@ -108,6 +108,32 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
+                        <Route
+                            path="/admin/users"
+                            element={
+                                <ProtectedRoute allowedRoles={['admin', 'ADMIN']}>
+                                    <DashboardLayout>
+                                        <UserManagement />
+                                    </DashboardLayout>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/course/new"
+                            element={
+                                <ProtectedRoute allowedRoles={['admin', 'ADMIN']}>
+                                    <CourseForm />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/course/:id/edit"
+                            element={
+                                <ProtectedRoute allowedRoles={['admin', 'ADMIN']}>
+                                    <CourseForm />
+                                </ProtectedRoute>
+                            }
+                        />
 
                         {/* Instructor Routes */}
                         <Route
