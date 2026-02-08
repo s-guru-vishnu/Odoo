@@ -147,86 +147,53 @@ const UserDashboard = () => {
                 )}
             </div>
 
-            {/* Courses Section - Hidden for Instructors */}
-            {!isInstructor && (
+
+
+            {/* Certificates Section */}
+            {!isInstructor && courses.some(c => c.status === 'COMPLETED') && (
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold text-neutral-800">My Courses</h2>
-
-                    {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[1, 2, 3].map(i => (
-                                <Card key={i} className="h-64 animate-pulse bg-neutral-100 border-none rounded-3xl" />
-                            ))}
-                        </div>
-                    ) : courses.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-neutral-200">
-                            <div className="h-16 w-16 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <BookOpen className="h-8 w-8 text-neutral-400" />
-                            </div>
-                            <h3 className="text-lg font-medium text-neutral-900">No courses yet</h3>
-                            <p className="text-neutral-500 mb-6">Start your learning journey by enrolling in a course.</p>
-                            <Button onClick={() => navigate('/courses/explore')} className="rounded-2xl">Explore Courses</Button>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {courses.map((course) => (
-                                <Card key={course.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-neutral-200 rounded-3xl">
-                                    <div className="h-40 bg-neutral-100 relative overflow-hidden">
-                                        {course.image_url ? (
-                                            <img
-                                                src={course.image_url}
-                                                alt={course.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary">
-                                                <BookOpen className="h-12 w-12 opacity-20" />
-                                            </div>
-                                        )}
-                                        <div className="absolute top-3 right-3">
-                                            <Badge variant={getStatusColor(course.status)} className="shadow-sm">
-                                                {(course.status || 'YET_TO_START').replace(/_/g, ' ')}
-                                            </Badge>
-                                        </div>
-                                    </div>
-
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">
-                                            {course.title}
-                                        </CardTitle>
-                                        <div className="flex items-center justify-between text-sm text-neutral-500">
-                                            <span className="flex items-center gap-1 font-medium">
-                                                <Clock className="h-3 w-3" />
-                                                {course.completion_percentage}% Complete
-                                            </span>
-                                        </div>
-                                    </CardHeader>
-
-                                    <CardContent>
-                                        <div className="w-full h-2 bg-neutral-100 rounded-full mb-6 overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full transition-all duration-1000 ${course.status === 'COMPLETED' ? 'bg-green-500' : 'bg-primary'
-                                                    }`}
-                                                style={{ width: `${course.completion_percentage}%` }}
-                                            />
-                                        </div>
-
-                                        <Button
-                                            className="w-full rounded-2xl group-hover:gap-3 transition-all"
-                                            onClick={() => handleResume(course.id)}
-                                            variant={course.status === 'COMPLETED' ? "outline" : "default"}
-                                        >
-                                            {course.status === 'COMPLETED' ? (
-                                                <>View Certificate <Trophy className="ml-2 h-4 w-4 text-yellow-500" /></>
-                                            ) : (
-                                                <>Resume Learning <PlayCircle className="ml-2 h-4 w-4" /></>
-                                            )}
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
+                    <h2 className="text-2xl font-bold text-neutral-800">My Certificates</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {courses.filter(c => c.status === 'COMPLETED').map((course) => (
+                            <Card key={course.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-neutral-200 rounded-3xl">
+                                <div className="h-40 bg-neutral-100 relative overflow-hidden">
+                                    {course.image_url ? (
+                                        <img src={course.image_url} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary"><BookOpen className="h-12 w-12 opacity-20" /></div>
+                                    )}
+                                    <div className="absolute top-3 right-3"><Badge className="bg-green-500 shadow-sm">Completed</Badge></div>
+                                </div>
+                                <CardHeader className="pb-4">
+                                    <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{course.title}</CardTitle>
+                                    <Button
+                                        className="w-full mt-4 rounded-2xl bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-md"
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                                const token = localStorage.getItem('token');
+                                                const res = await fetch('/api/certificates/generate', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                                    body: JSON.stringify({ courseId: course.id })
+                                                });
+                                                if (res.ok) {
+                                                    const data = await res.json();
+                                                    window.open(data.pdf_url, '_blank');
+                                                } else {
+                                                    alert('Error generating certificate');
+                                                }
+                                            } catch (err) {
+                                                console.error('Cert Error:', err);
+                                            }
+                                        }}
+                                    >
+                                        Download Certificate <Trophy className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </CardHeader>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
             )}
 

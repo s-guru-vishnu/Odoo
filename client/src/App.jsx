@@ -113,6 +113,39 @@ function App() {
                         }
                     />
 
+                    <Route
+                        path="/admin/users"
+                        element={
+                            <ProtectedRoute allowedRoles={['admin', 'ADMIN']}>
+                                <DashboardLayout>
+                                    <UserManagement />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/settings"
+                        element={
+                            <ProtectedRoute allowedRoles={['admin', 'ADMIN', 'user', 'LEARNER', 'INSTRUCTOR', 'TEACHER', 'MENTOR']}>
+                                <DashboardLayout>
+                                    <Settings />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/instructor/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={['instructor', 'INSTRUCTOR', 'MENTOR', 'TEACHER']}>
+                                <DashboardLayout>
+                                    <CoursesDashboard />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+
                     {/* User Profile */}
                     <Route
                         path="/user/profile"
@@ -188,7 +221,7 @@ function App() {
                 </Routes>
                 <ChatBot />
             </AuthProvider>
-        </Router>
+        </Router >
     );
 }
 

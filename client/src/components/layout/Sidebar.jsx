@@ -33,7 +33,6 @@ const Sidebar = ({ className, isOpen, onClose }) => {
         // Learner / User / Default
         navItems = [
             { label: 'Dashboard', icon: LayoutDashboard, path: '/user/dashboard' },
-            { label: 'My Courses', icon: Box, path: '/courses/my-courses' }, // Assuming my courses path
             { label: 'Explore Courses', icon: Archive, path: '/courses/explore' },
             { label: 'Live Classes', icon: Video, path: '/live-classes' },
             { label: 'Upcoming Quizzes', icon: BookOpen, path: '/quizzes' },
